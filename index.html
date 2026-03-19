@@ -519,8 +519,10 @@
                 });
 
                 // Simulate API call (replace with actual API)
-                const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === 'https://mki-supermitra.vercel.app';
-                const baseUrl = isDevelopment ? 'https://devngomset.katib.cloud' : 'https://prod.masterkuliner.cloud';
+                // const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === 'https://mki-supermitra.vercel.app';
+                // const baseUrl = isDevelopment ? 'https://devngomset.katib.cloud' : 'https://prod.masterkuliner.cloud';
+        
+                const baseUrl = 'https://devngomset.katib.cloud';
 
                 fetch(`${baseUrl}/otp/client_login`, {
                     method: 'POST',
