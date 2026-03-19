@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary-green-400: #4ade80;
+  --color-primary-green-500: #22c55e;
+  --color-primary-green-600: #16a34a;
+  --color-primary-green-700: #15803d;
+  --color-primary-green-800: #166534;
+  --color-primary-green-900: #14532d;
+
+  --color-accent-gold-400: #fbbf24;
+  --color-accent-gold-500: #f59e0b;
+  --color-accent-gold-600: #d97706;
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary-green-700 text-white hover:bg-primary-green-600 outline-none ring-offset-2 focus:ring-2 focus:ring-primary-green-700 py-2.5 px-6 rounded-lg font-semibold text-base transition-colors duration-200 ease-in-out;
+  }
+
+  .btn-secondary {
+    @apply bg-neutral-100 text-slate-900 border border-neutral-300 hover:bg-neutral-200 outline-none ring-offset-2 focus:ring-2 focus:ring-neutral-300 py-2.5 px-6 rounded-lg font-semibold text-base transition-colors duration-200 ease-in-out;
+  }
+
+  .btn-accent {
+    @apply bg-accent-gold-500 text-slate-900 hover:opacity-90 outline-none ring-offset-2 focus:ring-2 focus:ring-accent-gold-500 py-2.5 px-6 rounded-lg font-semibold text-base transition-opacity duration-200 ease-in-out;
+  }
+}
