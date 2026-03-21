@@ -185,19 +185,36 @@ document.addEventListener('DOMContentLoaded', function() {
         container.classList.remove('hidden');
         
         tbody.innerHTML = orders.map(order => `
-            <tr class="hover:bg-slate-50/80 transition-colors">
-                <td class="p-4 font-bold text-slate-800 font-poppins text-sm whitespace-nowrap"><a href="#" class="hover:text-red-600 transition-colors">${order.no_inv}</a></td>
-                <td class="p-4 text-center whitespace-nowrap">
+            <tr class="block md:table-row hover:bg-slate-50/80 transition-colors bg-white md:bg-transparent rounded-2xl md:rounded-none shadow-sm md:shadow-none border border-neutral-100 md:border-none p-2 md:p-0">
+                <td class="flex justify-between items-center md:table-cell p-3 md:p-4 font-bold text-slate-800 font-poppins text-sm md:whitespace-nowrap border-b border-neutral-50 md:border-none">
+                    <span class="md:hidden text-xs font-semibold text-slate-500">No. Invoice</span>
+                    <a href="#" class="hover:text-red-600 transition-colors">${order.no_inv}</a>
+                </td>
+                <td class="flex justify-between items-center md:table-cell p-3 md:p-4 md:text-center md:whitespace-nowrap border-b border-neutral-50 md:border-none">
+                    <span class="md:hidden text-xs font-semibold text-slate-500">Status</span>
                     <span class="inline-flex items-center justify-center px-2.5 py-1 text-xs font-semibold rounded-md ${getStatusColor(order.status)}">
                         ${order.status}
                     </span>
                 </td>
-                <td class="p-4 text-sm text-slate-600 whitespace-nowrap">${order.date}</td>
-                <td class="p-4 text-sm text-slate-700 font-semibold whitespace-nowrap">${order.customer}</td>
-                <td class="p-4 text-sm text-slate-600 whitespace-nowrap">${order.sales_type}</td>
-                <td class="p-4 text-sm font-bold text-slate-900 text-right font-poppins whitespace-nowrap">Rp ${Number(order.total).toLocaleString('id-ID')}</td>
-                <td class="p-4 text-sm text-right whitespace-nowrap ${Number(order.remaining_payment) > 0 ? 'text-red-600 font-semibold' : 'text-slate-500'}">
-                    Rp ${Number(order.remaining_payment).toLocaleString('id-ID')}
+                <td class="flex justify-between items-center md:table-cell p-3 md:p-4 text-sm text-slate-600 md:whitespace-nowrap border-b border-neutral-50 md:border-none">
+                    <span class="md:hidden text-xs font-semibold text-slate-500">Tanggal</span>
+                    <span>${order.date}</span>
+                </td>
+                <td class="flex justify-between items-center md:table-cell p-3 md:p-4 text-sm text-slate-700 font-semibold md:whitespace-nowrap border-b border-neutral-50 md:border-none">
+                    <span class="md:hidden text-xs font-semibold text-slate-500">Pelanggan</span>
+                    <span>${order.customer}</span>
+                </td>
+                <td class="flex justify-between items-center md:table-cell p-3 md:p-4 text-sm text-slate-600 md:whitespace-nowrap border-b border-neutral-50 md:border-none">
+                    <span class="md:hidden text-xs font-semibold text-slate-500">Tipe</span>
+                    <span>${order.sales_type}</span>
+                </td>
+                <td class="flex justify-between items-center md:table-cell p-3 md:p-4 text-sm font-bold text-slate-900 md:text-right font-poppins md:whitespace-nowrap border-b border-neutral-50 md:border-none">
+                    <span class="md:hidden text-xs font-semibold text-slate-500">Total</span>
+                    <span>Rp ${Number(order.total).toLocaleString('id-ID')}</span>
+                </td>
+                <td class="flex justify-between items-center md:table-cell p-3 md:p-4 text-sm md:text-right md:whitespace-nowrap ${Number(order.remaining_payment) > 0 ? 'text-red-600 font-semibold' : 'text-slate-500'}">
+                    <span class="md:hidden text-xs font-semibold text-slate-500">Sisa Bayar</span>
+                    <span>Rp ${Number(order.remaining_payment).toLocaleString('id-ID')}</span>
                 </td>
             </tr>
         `).join('');
