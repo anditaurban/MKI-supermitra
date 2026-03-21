@@ -185,7 +185,7 @@ document.addEventListener('DOMContentLoaded', function() {
         container.classList.remove('hidden');
         
         tbody.innerHTML = orders.map(order => `
-            <tr class="block md:table-row hover:bg-slate-50/80 transition-colors bg-white md:bg-transparent rounded-2xl md:rounded-none shadow-sm md:shadow-none border border-neutral-100 md:border-none p-2 md:p-0">
+            <tr class="block md:table-row hover:bg-slate-50/80 transition-colors bg-white md:bg-transparent rounded-2xl md:rounded-none shadow-sm md:shadow-none border border-neutral-100 md:border-0 md:border-b md:border-neutral-100 p-2 md:p-0 mb-4 md:mb-0">
                 <td class="flex justify-between items-center md:table-cell p-3 md:p-4 font-bold text-slate-800 font-poppins text-sm md:whitespace-nowrap border-b border-neutral-50 md:border-none">
                     <span class="md:hidden text-xs font-semibold text-slate-500">No. Invoice</span>
                     <a href="#" class="hover:text-red-600 transition-colors">${order.no_inv}</a>
