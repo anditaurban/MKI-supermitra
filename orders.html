@@ -88,6 +88,31 @@
         <div class="container mx-auto px-4 max-w-5xl">
             <h1 class="text-2xl md:text-3xl font-poppins font-bold text-slate-900 mb-6">Pesanan Saya</h1>
 
+            <!-- Summary Cards -->
+            <div id="summary-cards" class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+                <!-- Skeleton Loading -->
+                <div class="bg-white rounded-2xl p-4 shadow-sm border border-neutral-100 text-center animate-pulse">
+                    <div class="h-8 bg-gray-200 rounded mx-auto w-12 mb-2"></div>
+                    <div class="h-3 bg-gray-200 rounded w-full mx-auto"></div>
+                </div>
+                <div class="bg-white rounded-2xl p-4 shadow-sm border border-neutral-100 text-center animate-pulse">
+                    <div class="h-8 bg-gray-200 rounded mx-auto w-12 mb-2"></div>
+                    <div class="h-3 bg-gray-200 rounded w-full mx-auto"></div>
+                </div>
+                <div class="bg-white rounded-2xl p-4 shadow-sm border border-neutral-100 text-center animate-pulse">
+                    <div class="h-8 bg-gray-200 rounded mx-auto w-12 mb-2"></div>
+                    <div class="h-3 bg-gray-200 rounded w-full mx-auto"></div>
+                </div>
+                <div class="bg-white rounded-2xl p-4 shadow-sm border border-neutral-100 text-center animate-pulse hidden md:block">
+                    <div class="h-8 bg-gray-200 rounded mx-auto w-12 mb-2"></div>
+                    <div class="h-3 bg-gray-200 rounded w-full mx-auto"></div>
+                </div>
+                <div class="bg-white rounded-2xl p-4 shadow-sm border border-neutral-100 text-center animate-pulse hidden md:block">
+                    <div class="h-8 bg-gray-200 rounded mx-auto w-12 mb-2"></div>
+                    <div class="h-3 bg-gray-200 rounded w-full mx-auto"></div>
+                </div>
+            </div>
+
             <!-- Orders Container -->
             <div class="bg-white rounded-2xl shadow-sm border border-neutral-100 overflow-hidden">
                 <!-- Loading -->
@@ -108,9 +133,24 @@
                     </a>
                 </div>
 
-                <!-- Orders List -->
-                <div id="orders-list" class="divide-y divide-neutral-100 hidden">
-                    <!-- Orders will be loaded here -->
+                <!-- Orders Table Container -->
+                <div class="overflow-x-auto hidden" id="orders-table-container">
+                    <table class="w-full text-left border-collapse min-w-[800px]">
+                        <thead>
+                            <tr class="bg-gray-50 border-b border-neutral-100 text-xs uppercase tracking-wider text-slate-500 font-semibold">
+                                <th class="p-4 whitespace-nowrap">No. Invoice</th>
+                                <th class="p-4 whitespace-nowrap text-center">Status</th>
+                                <th class="p-4 whitespace-nowrap">Tanggal</th>
+                                <th class="p-4 whitespace-nowrap">Pelanggan</th>
+                                <th class="p-4 whitespace-nowrap">Tipe</th>
+                                <th class="p-4 whitespace-nowrap text-right">Total</th>
+                                <th class="p-4 whitespace-nowrap text-right">Sisa Bayar</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-table-body" class="divide-y divide-neutral-100">
+                            <!-- Orders will be loaded here -->
+                        </tbody>
+                    </table>
                 </div>
 
                 <!-- Pagination -->

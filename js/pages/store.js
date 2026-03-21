@@ -164,7 +164,7 @@ document.addEventListener('DOMContentLoaded', function () {
         fetch(`${baseUrl}/list/product_sales_msi/${customerId}`, {
             method: 'GET',
             headers: {
-                'Authorization': 'Bearer 3ed66de3108ce387e9d134c419c0fdd61687c3b06760419d32493b18366999d2',
+                'Authorization': `Bearer ${apiToken}`,
                 'Content-Type': 'application/json'
             }
         })
@@ -433,7 +433,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const response = await fetch(`${baseUrl}/add/sales_msi`, {
                 method: 'POST',
                 headers: {
-                    'Authorization': 'Bearer 3ed66de3108ce387e9d134c419c0fdd61687c3b06760419d32493b18366999d2',
+                    'Authorization': `Bearer ${apiToken}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(payload)

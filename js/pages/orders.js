@@ -93,14 +93,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         document.getElementById('loading-state').classList.remove('hidden');
-        document.getElementById('orders-list').classList.add('hidden');
+        const list = document.getElementById('orders-list');
+        if (list) list.classList.add('hidden');
+        const container = document.getElementById('orders-table-container');
+        if (container) container.classList.add('hidden');
         document.getElementById('empty-state').classList.add('hidden');
         document.getElementById('pagination').classList.add('hidden');
 
         fetch(`${baseUrl}/table/sales_webstore/${customerId}/${page}`, {
             method: 'GET',
             headers: {
-                'Authorization': 'Bearer 3ed66de3108ce387e9d134c419c0fdd61687c3b06760419d32493b18366999d2',
+                'Authorization': `Bearer ${apiToken}`,
                 'Content-Type': 'application/json'
             }
         })
@@ -109,8 +112,11 @@ document.addEventListener('DOMContentLoaded', function() {
             return response.json();
         })
         .then(data => {
+            if (data && data.summaryData) {
+                renderSummary(data.summaryData);
+            }
             if (data && data.tableData && data.tableData.length > 0) {
-                renderOrders(data.tableData);
+                renderOrdersTable(data.tableData);
                 renderPagination(data.totalPages, data.totalRecords, page, data.period);
             } else {
                 showEmpty();
@@ -125,6 +131,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function showEmpty() {
         document.getElementById('loading-state').classList.add('hidden');
         document.getElementById('empty-state').classList.remove('hidden');
+        const container = document.getElementById('orders-table-container');
+        if (container) container.classList.add('hidden');
     }
 
     function getStatusColor(status) {
@@ -139,32 +147,59 @@ document.addEventListener('DOMContentLoaded', function() {
         return 'bg-gray-100 text-gray-800 border-[0.5px] border-gray-200';
     }
 
-    function renderOrders(orders) {
-        document.getElementById('loading-state').classList.add('hidden');
-        const list = document.getElementById('orders-list');
-        list.classList.remove('hidden');
+    function renderSummary(summary) {
+        const container = document.getElementById('summary-cards');
+        if (!container || !summary) return;
         
-        list.innerHTML = orders.map(order => `
-            <div class="p-6 hover:bg-slate-50 transition-colors flex flex-col md:flex-row gap-6 items-start md:items-center justify-between">
-                <div class="flex-1">
-                    <div class="flex flex-wrap items-center gap-3 mb-2">
-                        <span class="font-bold text-slate-800 font-poppins text-lg">${order.no_inv}</span>
-                        <span class="px-2.5 py-1 text-xs font-semibold rounded-md ${getStatusColor(order.status)}">${order.status}</span>
-                    </div>
-                    <div class="space-y-1 text-sm text-slate-500">
-                        <p><span class="inline-block w-20">Tanggal</span>: <span class="text-slate-700 font-medium">${order.date}</span></p>
-                        <p><span class="inline-block w-20">Tipe</span>: <span class="text-slate-700">${order.sales_type}</span></p>
-                        <p><span class="inline-block w-20">Pelanggan</span>: <span class="text-slate-700">${order.customer}</span></p>
-                    </div>
-                </div>
-                <div class="w-full md:w-auto p-4 bg-white md:bg-transparent rounded-xl md:rounded-none border border-neutral-100 md:border-none text-left md:text-right">
-                    <p class="text-sm text-slate-500 mb-1">Total Belanja</p>
-                    <p class="font-bold text-slate-900 text-xl font-poppins">Rp ${Number(order.total).toLocaleString('id-ID')}</p>
-                    ${Number(order.remaining_payment) > 0 
-                        ? `<p class="text-sm text-red-600 font-medium mt-2 bg-red-50/50 md:bg-transparent py-1 px-2 md:p-0 rounded-md">Sisa Bayar: Rp ${Number(order.remaining_payment).toLocaleString('id-ID')}</p>` 
-                        : ''}
-                </div>
+        const formatNum = (val) => val === null || val === undefined ? '0' : val;
+        
+        container.innerHTML = `
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-neutral-100 text-center hover:shadow-md transition-shadow">
+                <p class="text-3xl font-poppins font-bold text-orange-500 mb-1">${formatNum(summary.menunggu_pembayaran)}</p>
+                <p class="text-xs text-slate-500 font-medium whitespace-nowrap truncate">Menunggu Pembayaran</p>
             </div>
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-neutral-100 text-center hover:shadow-md transition-shadow">
+                <p class="text-3xl font-poppins font-bold text-blue-500 mb-1">${formatNum(summary.sedang_diverifikasi)}</p>
+                <p class="text-xs text-slate-500 font-medium whitespace-nowrap truncate">Sedang Diverifikasi</p>
+            </div>
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-neutral-100 text-center hover:shadow-md transition-shadow">
+                <p class="text-3xl font-poppins font-bold text-yellow-500 mb-1">${formatNum(summary.bayar_sebagian)}</p>
+                <p class="text-xs text-slate-500 font-medium whitespace-nowrap truncate">Bayar Sebagian</p>
+            </div>
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-neutral-100 text-center hover:shadow-md transition-shadow">
+                <p class="text-3xl font-poppins font-bold text-indigo-500 mb-1">${formatNum(summary.sedang_diproses)}</p>
+                <p class="text-xs text-slate-500 font-medium whitespace-nowrap truncate">Sedang Diproses</p>
+            </div>
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-neutral-100 text-center hover:shadow-md transition-shadow">
+                <p class="text-3xl font-poppins font-bold text-slate-500 mb-1">${formatNum(summary.tanpa_salesman)}</p>
+                <p class="text-xs text-slate-500 font-medium whitespace-nowrap truncate">Tanpa Salesman</p>
+            </div>
+        `;
+    }
+
+    function renderOrdersTable(orders) {
+        document.getElementById('loading-state').classList.add('hidden');
+        const container = document.getElementById('orders-table-container');
+        const tbody = document.getElementById('orders-table-body');
+        
+        container.classList.remove('hidden');
+        
+        tbody.innerHTML = orders.map(order => `
+            <tr class="hover:bg-slate-50/80 transition-colors">
+                <td class="p-4 font-bold text-slate-800 font-poppins text-sm whitespace-nowrap"><a href="#" class="hover:text-red-600 transition-colors">${order.no_inv}</a></td>
+                <td class="p-4 text-center whitespace-nowrap">
+                    <span class="inline-flex items-center justify-center px-2.5 py-1 text-xs font-semibold rounded-md ${getStatusColor(order.status)}">
+                        ${order.status}
+                    </span>
+                </td>
+                <td class="p-4 text-sm text-slate-600 whitespace-nowrap">${order.date}</td>
+                <td class="p-4 text-sm text-slate-700 font-semibold whitespace-nowrap">${order.customer}</td>
+                <td class="p-4 text-sm text-slate-600 whitespace-nowrap">${order.sales_type}</td>
+                <td class="p-4 text-sm font-bold text-slate-900 text-right font-poppins whitespace-nowrap">Rp ${Number(order.total).toLocaleString('id-ID')}</td>
+                <td class="p-4 text-sm text-right whitespace-nowrap ${Number(order.remaining_payment) > 0 ? 'text-red-600 font-semibold' : 'text-slate-500'}">
+                    Rp ${Number(order.remaining_payment).toLocaleString('id-ID')}
+                </td>
+            </tr>
         `).join('');
     }
 
