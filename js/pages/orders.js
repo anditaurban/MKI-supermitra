@@ -205,17 +205,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function renderPagination(totalPages, totalRecords, currentPageIndex, period) {
         const pagination = document.getElementById('pagination');
-        if (totalPages <= 1) {
-            pagination.classList.add('hidden');
-            return;
-        }
         
+        // Selalu tampilkan pagination meskipun total halaman <= 1
         pagination.classList.remove('hidden');
+
+        const safeTotalPages = totalPages > 0 ? totalPages : 1;
         const prevBtn = document.getElementById('prev-page');
         const nextBtn = document.getElementById('next-page');
         const info = document.getElementById('page-info');
 
-        info.textContent = `Halaman ${currentPageIndex} dari ${totalPages}`;
+        info.textContent = `Halaman ${currentPageIndex} dari ${safeTotalPages}`;
 
         prevBtn.disabled = currentPageIndex <= 1;
         nextBtn.disabled = currentPageIndex >= totalPages;
