@@ -190,6 +190,7 @@
     </div>
 
     <!-- Scripts -->
+    <script src="/js/modules/api.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -354,9 +355,6 @@
                     document.getElementById('loading').style.display = 'none';
                     return;
                 }
-                const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                const baseUrl = isDevelopment ? 'https://devngomset.katib.cloud' : 'https://prod.masterkuliner.cloud';
-
                 // Fetch products from API
                 fetch(`${baseUrl}/list/product_sales_msi/${customerId}`, {
                     method: 'GET',
@@ -609,10 +607,6 @@
                         termpayment: "",
                         sales_detail: salesDetail
                     };
-
-                    // Get base URL
-                    const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                    const baseUrl = isDevelopment ? 'https://devngomset.katib.cloud' : 'https://prod.masterkuliner.cloud';
 
                     // Show loading on button
                     const checkoutBtn = document.getElementById('checkout-btn');

@@ -314,7 +314,8 @@
                                 class="w-1.5 h-1.5 rounded-full bg-red-600 mr-2"></span>Beranda</a></li>
                     <li><a href="#about" class="hover:text-red-400 transition-colors flex items-center"><span
                                 class="w-1.5 h-1.5 rounded-full bg-red-600 mr-2"></span>Tentang Kami</a></li>
-                    <li><a onclick="openLoginModal()" class="hover:text-red-400 transition-colors flex items-center"><span
+                    <li><a onclick="openLoginModal()"
+                            class="hover:text-red-400 transition-colors flex items-center"><span
                                 class="w-1.5 h-1.5 rounded-full bg-red-600 mr-2"></span>Akses Portal Mitra</a></li>
                 </ul>
             </div>
@@ -363,10 +364,11 @@
     </footer>
 
     <!-- Scripts -->
+    <script src="/js/modules/api.js"></script>
     <!-- SweetAlert2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // Check if user is already logged in
             const user = JSON.parse(localStorage.getItem('mki_user'));
             if (user) {
@@ -419,10 +421,6 @@
                 });
 
                 // Simulate API call (replace with actual API)
-                const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === 'mki-supermitra.vercel.app';
-                const baseUrl = isDevelopment ? 'https://devngomset.katib.cloud' : 'https://prod.masterkuliner.cloud';
-                const ownerId = '4427';
-
                 fetch(`${baseUrl}/client_login/${ownerId}/${waNumber}`)
                     .then(response => response.json())
                     .then(data => {
@@ -519,9 +517,6 @@
                 });
 
                 // Simulate API call (replace with actual API)
-                const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === 'mki-supermitra.vercel.app';
-                const baseUrl = isDevelopment ? 'https://devngomset.katib.cloud' : 'https://prod.masterkuliner.cloud';
-        
                 fetch(`${baseUrl}/otp/client_login`, {
                     method: 'POST',
                     headers: {
