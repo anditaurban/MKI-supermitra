@@ -154,14 +154,16 @@
                 </div>
 
                 <!-- Pagination -->
-                <div id="pagination" class="p-6 border-t border-neutral-100 flex items-center justify-between hidden bg-gray-50">
-                    <button id="prev-page" class="px-4 py-2 bg-white border border-neutral-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-gray-50 hover:text-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm">
-                        Sebelumnya
-                    </button>
+                <div id="pagination" class="p-6 border-t border-neutral-100 flex flex-col sm:flex-row items-center justify-end gap-4 hidden bg-gray-50 md:bg-white rounded-b-2xl">
                     <span id="page-info" class="text-sm font-medium text-slate-600">Halaman 1 dari 1</span>
-                    <button id="next-page" class="px-4 py-2 bg-white border border-neutral-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-gray-50 hover:text-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm">
-                        Selanjutnya
-                    </button>
+                    <div class="flex items-center gap-2">
+                        <button id="prev-page" class="px-4 py-2 bg-white border border-neutral-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-gray-50 hover:text-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm">
+                            Sebelumnya
+                        </button>
+                        <button id="next-page" class="px-4 py-2 bg-white border border-neutral-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-gray-50 hover:text-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm">
+                            Selanjutnya
+                        </button>
+                    </div>
                 </div>
             </div>
 
