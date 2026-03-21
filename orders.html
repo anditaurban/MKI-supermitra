@@ -219,7 +219,7 @@
             let currentPage = 1;
 
             function fetchOrders(page) {
-                const customerId = user.customer_id || user.owner_id;
+                const customerId = user.customer_id;
                 if (!customerId) {
                     showEmpty();
                     return;
