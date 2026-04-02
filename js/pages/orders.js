@@ -14,14 +14,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const profileDropdown = document.getElementById('profile-dropdown');
     const logoutBtn = document.getElementById('logout-btn');
     const profileLink = document.querySelector('#profile-dropdown a[href="#"]');
-    const courseLink = document.getElementById('course-link');
 
-    profileBtn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        profileDropdown.classList.toggle('hidden');
-    });
+    if(profileBtn) {
+        profileBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            profileDropdown.classList.toggle('hidden');
+        });
+    }
 
-    // Profile & Course link dummy
     if(profileLink) {
         profileLink.addEventListener('click', function(e) {
             e.preventDefault();
@@ -35,51 +35,45 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    if(courseLink) {
-        courseLink.addEventListener('click', function(e) {
-            e.preventDefault();
-            profileDropdown.classList.add('hidden');
-            Swal.fire({
-                title: 'Course',
-                text: 'Fitur course akan segera hadir!',
-                icon: 'info',
-                confirmButtonColor: '#dc2626'
-            });
-        });
-    }
-
     document.addEventListener('click', function(e) {
-        if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
+        if (profileBtn && profileDropdown && !profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
             profileDropdown.classList.add('hidden');
         }
     });
 
-    logoutBtn.addEventListener('click', function() {
-        Swal.fire({
-            title: 'Apakah Anda yakin?',
-            text: 'Anda akan keluar dari akun ini',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#dc2626',
-            cancelButtonColor: '#6b7280',
-            confirmButtonText: 'Ya, Logout',
-            cancelButtonText: 'Batal'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                localStorage.removeItem('mki_user');
-                localStorage.removeItem('mki_cart');
-                window.location.href = '/';
-            }
+    if(logoutBtn) {
+        logoutBtn.addEventListener('click', function() {
+            Swal.fire({
+                title: 'Apakah Anda yakin?',
+                text: 'Anda akan keluar dari akun ini',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Ya, Logout',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    localStorage.removeItem('mki_user');
+                    localStorage.removeItem('mki_cart');
+                    window.location.href = '/';
+                }
+            });
         });
-    });
+    }
 
     function loadUserProfile(user) {
         const userName = user.name || user.email || 'User';
-        document.getElementById('user-name').textContent = userName;
+        const nameEl = document.getElementById('user-name');
+        if(nameEl) nameEl.textContent = userName;
+        
         const userRole = user.role === 'admin' ? 'Admin' : 'Partner';
-        document.getElementById('user-role').textContent = userRole;
+        const roleEl = document.getElementById('user-role');
+        if(roleEl) roleEl.textContent = userRole;
+        
         const firstLetter = userName.charAt(0).toUpperCase();
-        document.getElementById('user-avatar').textContent = firstLetter;
+        const avatarEl = document.getElementById('user-avatar');
+        if(avatarEl) avatarEl.textContent = firstLetter;
     }
 
     // Orders Logic
