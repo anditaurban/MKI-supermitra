@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Check if user is logged in
     const user = JSON.parse(localStorage.getItem('mki_user'));
     if (!user) {
@@ -15,15 +15,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const logoutBtn = document.getElementById('logout-btn');
     const profileLink = document.querySelector('#profile-dropdown a[href="#"]');
 
-    if(profileBtn) {
-        profileBtn.addEventListener('click', function(e) {
+    if (profileBtn) {
+        profileBtn.addEventListener('click', function (e) {
             e.stopPropagation();
             profileDropdown.classList.toggle('hidden');
         });
     }
 
-    if(profileLink) {
-        profileLink.addEventListener('click', function(e) {
+    if (profileLink) {
+        profileLink.addEventListener('click', function (e) {
             e.preventDefault();
             profileDropdown.classList.add('hidden');
             Swal.fire({
@@ -35,14 +35,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         if (profileBtn && profileDropdown && !profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
             profileDropdown.classList.add('hidden');
         }
     });
 
-    if(logoutBtn) {
-        logoutBtn.addEventListener('click', function() {
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function () {
             Swal.fire({
                 title: 'Apakah Anda yakin?',
                 text: 'Anda akan keluar dari akun ini',
@@ -65,15 +65,15 @@ document.addEventListener('DOMContentLoaded', function() {
     function loadUserProfile(user) {
         const userName = user.name || user.email || 'User';
         const nameEl = document.getElementById('user-name');
-        if(nameEl) nameEl.textContent = userName;
-        
+        if (nameEl) nameEl.textContent = userName;
+
         const userRole = user.role === 'admin' ? 'Admin' : 'Partner';
         const roleEl = document.getElementById('user-role');
-        if(roleEl) roleEl.textContent = userRole;
-        
+        if (roleEl) roleEl.textContent = userRole;
+
         const firstLetter = userName.charAt(0).toUpperCase();
         const avatarEl = document.getElementById('user-avatar');
-        if(avatarEl) avatarEl.textContent = firstLetter;
+        if (avatarEl) avatarEl.textContent = firstLetter;
     }
 
     // Orders Logic
@@ -101,25 +101,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 'Content-Type': 'application/json'
             }
         })
-        .then(response => {
-            if (!response.ok) throw new Error('HTTP error ' + response.status);
-            return response.json();
-        })
-        .then(data => {
-            if (data && data.summaryData) {
-                renderSummary(data.summaryData);
-            }
-            if (data && data.tableData && data.tableData.length > 0) {
-                renderOrdersTable(data.tableData);
-                renderPagination(data.totalPages, data.totalRecords, page, data.period);
-            } else {
+            .then(response => {
+                if (!response.ok) throw new Error('HTTP error ' + response.status);
+                return response.json();
+            })
+            .then(data => {
+                if (data && data.summaryData) {
+                    renderSummary(data.summaryData);
+                }
+                if (data && data.tableData && data.tableData.length > 0) {
+                    renderOrdersTable(data.tableData);
+                    renderPagination(data.totalPages, data.totalRecords, page, data.period);
+                } else {
+                    showEmpty();
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching orders:', error);
                 showEmpty();
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching orders:', error);
-            showEmpty();
-        });
+            });
     }
 
     function showEmpty() {
@@ -132,6 +132,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function getStatusColor(status) {
         if (!status) return 'bg-gray-100 text-gray-800';
         status = status.toLowerCase();
+        if (status.includes('konfirmasi')) return 'bg-teal-100 text-teal-800 border-[0.5px] border-teal-200';
         if (status.includes('menunggu')) return 'bg-orange-100 text-orange-800 border-[0.5px] border-orange-200';
         if (status.includes('verifikasi')) return 'bg-blue-100 text-blue-800 border-[0.5px] border-blue-200';
         if (status.includes('proses')) return 'bg-indigo-100 text-indigo-800 border-[0.5px] border-indigo-200';
@@ -144,10 +145,14 @@ document.addEventListener('DOMContentLoaded', function() {
     function renderSummary(summary) {
         const container = document.getElementById('summary-cards');
         if (!container || !summary) return;
-        
+
         const formatNum = (val) => val === null || val === undefined ? '0' : val;
-        
+
         container.innerHTML = `
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-neutral-100 text-center hover:shadow-md transition-shadow">
+                <p class="text-3xl font-poppins font-bold text-teal-500 mb-1">${formatNum(summary.menunggu_konfirmasi)}</p>
+                <p class="text-xs text-slate-500 font-medium whitespace-nowrap truncate">Menunggu Konfirmasi</p>
+            </div>
             <div class="bg-white rounded-2xl p-4 shadow-sm border border-neutral-100 text-center hover:shadow-md transition-shadow">
                 <p class="text-3xl font-poppins font-bold text-orange-500 mb-1">${formatNum(summary.menunggu_pembayaran)}</p>
                 <p class="text-xs text-slate-500 font-medium whitespace-nowrap truncate">Menunggu Pembayaran</p>
@@ -165,8 +170,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 <p class="text-xs text-slate-500 font-medium whitespace-nowrap truncate">Sedang Diproses</p>
             </div>
             <div class="bg-white rounded-2xl p-4 shadow-sm border border-neutral-100 text-center hover:shadow-md transition-shadow">
-                <p class="text-3xl font-poppins font-bold text-slate-500 mb-1">${formatNum(summary.tanpa_salesman)}</p>
-                <p class="text-xs text-slate-500 font-medium whitespace-nowrap truncate">Tanpa Salesman</p>
+                <p class="text-3xl font-poppins font-bold text-slate-500 mb-1">${formatNum(summary.paket_terkirim)}</p>
+                <p class="text-xs text-slate-500 font-medium whitespace-nowrap truncate">Paket Terkirim</p>
             </div>
         `;
     }
@@ -175,9 +180,9 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('loading-state').classList.add('hidden');
         const container = document.getElementById('orders-table-container');
         const tbody = document.getElementById('orders-table-body');
-        
+
         container.classList.remove('hidden');
-        
+
         tbody.innerHTML = orders.map(order => `
             <tr class="block md:table-row hover:bg-slate-50/80 transition-colors bg-white md:bg-transparent rounded-2xl md:rounded-none shadow-sm md:shadow-none border border-neutral-100 md:border-0 md:border-b md:border-neutral-100 p-2 md:p-0 mb-4 md:mb-0">
                 <td class="flex justify-between items-center md:table-cell p-3 md:p-4 font-bold text-slate-800 font-poppins text-sm md:whitespace-nowrap border-b border-neutral-50 md:border-none">
@@ -216,7 +221,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function renderPagination(totalPages, totalRecords, currentPageIndex, period) {
         const pagination = document.getElementById('pagination');
-        
+
         // Selalu tampilkan pagination meskipun total halaman <= 1
         pagination.classList.remove('hidden');
 
