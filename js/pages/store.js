@@ -173,7 +173,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     price: item.sale_price,
                     image: '/assets/images/brands/CCC.webp', // Default image since API doesn't provide images
                     stock: item.stock,
-                    category: item.category
+                    category: item.category,
+                    business_category: item.business_category
                 }));
 
                 document.getElementById('loading').style.display = 'none';
@@ -207,17 +208,25 @@ document.addEventListener('DOMContentLoaded', function () {
 
         productsToRender.forEach(product => {
             const productCard = document.createElement('div');
-            productCard.className = 'bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all border border-neutral-100 overflow-hidden group';
+            productCard.className = 'bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all border border-neutral-100 overflow-hidden group flex flex-col relative';
+            const badgeHtml = product.business_category ? `
+                <div class="absolute top-3 right-3 z-10">
+                    <span class="bg-amber-100 text-amber-800 text-xs font-semibold px-2.5 py-0.5 rounded border border-amber-200 shadow-sm">
+                        ${product.business_category}
+                    </span>
+                </div>
+            ` : '';
             productCard.innerHTML = `
-                <div class="aspect-square overflow-hidden bg-neutral-100">
+                ${badgeHtml}
+                <div class="aspect-square overflow-hidden bg-neutral-100 relative">
                     <img alt="${product.name}" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300" src="${product.image}">
                 </div>
-                <div class="p-4">
-                    <h3 class="font-poppins text-lg font-bold text-slate-900 mb-2">${product.name}</h3>
-                    <p class="text-sm text-slate-500 leading-relaxed mb-4">${product.description}</p>
-                    <div class="flex items-center justify-between">
+                <div class="p-4 flex-1 flex flex-col">
+                    <h3 class="font-poppins text-lg font-bold text-slate-900 mb-2 line-clamp-2" title="${product.name}">${product.name}</h3>
+                    <p class="text-sm text-slate-500 leading-relaxed mb-4 line-clamp-2">${product.description}</p>
+                    <div class="flex items-center justify-between mt-auto">
                         <span class="font-bold text-red-600">Rp ${product.price.toLocaleString()}</span>
-                        <button onclick="addToCart(${product.id})" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-colors">
+                        <button onclick="addToCart(${product.id})" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-colors shadow-sm">
                             Tambah
                         </button>
                     </div>
