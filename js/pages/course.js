@@ -6,61 +6,15 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
     }
 
-    // Load user profile data
-    loadUserProfile(user);
 
-    // Profile dropdown logic
-    const profileBtn = document.getElementById('profile-btn');
-    const profileDropdown = document.getElementById('profile-dropdown');
-    const logoutBtn = document.getElementById('logout-btn');
-    const profileLink = document.querySelector('#profile-dropdown a[href="#"]');
-
-    if (profileBtn) {
-        profileBtn.addEventListener('click', function (e) {
-            e.stopPropagation();
-            profileDropdown.classList.toggle('hidden');
-        });
-    }
-
-    if (profileLink) {
-        profileLink.addEventListener('click', function (e) {
-            e.preventDefault();
-            profileDropdown.classList.add('hidden');
-            Swal.fire({
-                title: 'Profile',
-                text: 'Fitur profile akan segera hadir!',
-                icon: 'info',
-                confirmButtonColor: '#dc2626'
-            });
-        });
-    }
-
-    document.addEventListener('click', function (e) {
-        if (profileBtn && profileDropdown && !profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
-            profileDropdown.classList.add('hidden');
+    // Handle profile display once component is loaded
+    document.addEventListener('profileNavLoaded', () => {
+        const profileSection = document.getElementById('profile-section');
+        if (user && profileSection) {
+            profileSection.classList.remove('hidden');
+            loadUserProfile(user);
         }
     });
-
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', function () {
-            Swal.fire({
-                title: 'Apakah Anda yakin?',
-                text: 'Anda akan keluar dari akun ini',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#dc2626',
-                cancelButtonColor: '#6b7280',
-                confirmButtonText: 'Ya, Logout',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    localStorage.removeItem('mki_user');
-                    localStorage.removeItem('mki_cart');
-                    window.location.href = '/';
-                }
-            });
-        });
-    }
 
     function loadUserProfile(user) {
         const userName = user.name || user.email || 'User';
@@ -141,20 +95,36 @@ document.addEventListener('DOMContentLoaded', function () {
         let html = '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">';
 
         categories.forEach(category => {
+            const imgId = `cat-thumb-${category.business_category_id}`;
+
             html += `
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-neutral-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                <div class="flex items-center gap-4 mb-5 pb-4 border-b border-gray-50">
-                    <div class="w-12 h-12 bg-gradient-to-br from-red-50 to-red-100 rounded-xl flex items-center justify-center text-red-600 shrink-0 shadow-inner">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-                        </svg>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-bold text-slate-800 font-poppins">${category.description} (${category.business_category})</h3>
-                        <p class="text-xs text-slate-500 font-medium mt-0.5">${category.videos ? category.videos.length : 0} Materi Edukasi</p>
+            <div class="bg-white rounded-2xl shadow-sm border border-neutral-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden flex flex-col h-full">
+                <!-- Category Thumbnail Header -->
+                <div class="aspect-video w-full bg-slate-50 border-b border-neutral-100 overflow-hidden relative group shrink-0">
+                    <img id="${imgId}" src="${category.thumbnail || 'https://placehold.co/600x400/f8fafc/cbd5e1?text=No+Image'}" 
+                         alt="${category.description}" 
+                         class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                         onerror="window.tryLoadAuthImage(this, '${category.thumbnail}')">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="absolute top-3 right-3">
+                         <span class="px-3 py-1 bg-white/90 backdrop-blur-sm text-[10px] font-bold text-red-600 rounded-full shadow-sm border border-red-50 uppercase tracking-wider">${category.business_category}</span>
                     </div>
                 </div>
-                <ul class="space-y-2">
+
+                <div class="p-6 flex-1 flex flex-col">
+                    <div class="mb-5 pb-4 border-b border-gray-50">
+                        <h3 class="text-lg font-bold text-slate-800 font-poppins line-clamp-2 leading-tight mb-2">${category.description}</h3>
+                        <div class="flex items-center gap-2">
+                            <div class="flex -space-x-2">
+                                <div class="w-6 h-6 rounded-full bg-red-100 border-2 border-white flex items-center justify-center text-[10px] text-red-600 font-bold">M</div>
+                                <div class="w-6 h-6 rounded-full bg-slate-100 border-2 border-white flex items-center justify-center text-[10px] text-slate-600 font-bold">K</div>
+                                <div class="w-6 h-6 rounded-full bg-red-600 border-2 border-white flex items-center justify-center text-[10px] text-white font-bold text-center">I</div>
+                            </div>
+                            <p class="text-xs text-slate-500 font-medium ml-1">${category.videos ? category.videos.length : 0} Materi Edukasi</p>
+                        </div>
+                    </div>
+                    
+                    <ul class="space-y-2 flex-1">
             `;
 
             if (category.videos && category.videos.length > 0) {
@@ -186,6 +156,7 @@ document.addEventListener('DOMContentLoaded', function () {
             html += `
                 </ul>
             </div>
+        </div>
             `;
         });
 
@@ -193,9 +164,37 @@ document.addEventListener('DOMContentLoaded', function () {
         container.innerHTML = html;
     }
 
+    // Dual-load strategy for thumbnails requiring authentication
+    window.tryLoadAuthImage = async function (img, url) {
+        if (!url || url.includes('placehold.co')) return;
+        
+        // Prevent infinite loops
+        img.onerror = null; 
+        
+        console.log(`Direct load failed for ${url}, trying authenticated load...`);
+
+        try {
+            const response = await fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${window.apiToken}`
+                }
+            });
+
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+            const blob = await response.blob();
+            const objectUrl = URL.createObjectURL(blob);
+            img.src = objectUrl;
+            console.log(`Authenticated load successful for ${url}`);
+        } catch (error) {
+            console.error('Failure loading authenticated image:', error);
+            img.src = 'https://placehold.co/600x400/f8fafc/cbd5e1?text=Unauthorized';
+        }
+    }
+
     // Redirect to course player page
     window.playCourseVideo = function (videoId, title) {
-        if(videoId) {
+        if (videoId) {
             window.location.href = `/course_player.html?id=${videoId}`;
         }
     }

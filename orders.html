@@ -18,6 +18,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <link href="/css/main.css" rel="stylesheet">
+
+    <!-- REMIXICON -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet" />
 </head>
 
 <body class="bg-gray-50 font-inter text-slate-800 antialiased overflow-x-hidden">
@@ -41,65 +44,8 @@
                     Kembali ke Toko
                 </a>
 
-                <!-- Profile Section -->
-                <div class="relative">
-                    <button id="profile-btn"
-                        class="flex items-center gap-3 hover:bg-gray-50 px-3 py-2 rounded-lg transition-colors">
-                        <div
-                            class="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                            <span id="user-avatar">U</span>
-                        </div>
-                        <div class="hidden md:block text-left">
-                            <p class="text-sm font-semibold text-slate-900" id="user-name">User</p>
-                            <p class="text-xs text-slate-500" id="user-role">Partner</p>
-                        </div>
-                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
-                            </path>
-                        </svg>
-                    </button>
-
-                    <!-- Dropdown Menu -->
-                    <div id="profile-dropdown"
-                        class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-neutral-100 py-1 z-50 hidden">
-                        <a href="#"
-                            class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-gray-50 transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                            </svg>
-                            Profil
-                        </a>
-                        <a href="/course.html" id="course-link"
-                            class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-gray-50 transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
-                                </path>
-                            </svg>
-                            Pelatihan
-                        </a>
-                        <a href="/orders.html"
-                            class="flex items-center gap-3 px-4 py-2 text-sm text-red-600 font-semibold hover:bg-gray-50 transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4">
-                                </path>
-                            </svg>
-                            Pesanan Saya
-                        </a>
-                        <hr class="my-1 border-neutral-100">
-                        <button id="logout-btn"
-                            class="flex items-center gap-3 w-full px-4 py-2 text-sm text-slate-700 hover:bg-gray-50 transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
-                                </path>
-                            </svg>
-                            Keluar
-                        </button>
-                    </div>
-                </div>
+                <!-- Global Profile Navigation Placeholder -->
+                <div id="profile-nav-placeholder"></div>
             </div>
         </div>
     </header>
@@ -204,8 +150,48 @@
         </div>
     </main>
 
+    <!-- Modern Logout Modal -->
+    <div id="logoutModal" class="fixed inset-0 z-[2000] hidden overflow-y-auto px-4 py-6 sm:px-0">
+        <!-- Backdrop with glassmorphism -->
+        <div onclick="closeLogoutModal()"
+            class="fixed inset-0 bg-slate-900/40 backdrop-blur-md transition-opacity duration-300"></div>
+
+        <!-- Modal Card -->
+        <div class="relative mx-auto mt-40 max-w-sm transform overflow-hidden rounded-3xl bg-white shadow-2xl transition-all duration-300 scale-95 opacity-0"
+            id="logoutModalCard">
+            <div class="p-8 text-center">
+                <!-- Warning Icon -->
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-amber-50 text-amber-500 mb-6">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                        </path>
+                    </svg>
+                </div>
+                
+                <h2 class="text-xl font-bold text-slate-900 font-poppins mb-2">Keluar Akun?</h2>
+                <p class="text-slate-500 text-sm mb-8">Anda perlu masuk kembali untuk mengakses portal kemitraan Anda.</p>
+
+                <div class="space-y-3">
+                    <button onclick="confirmLogout()"
+                        class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-red-600/20 transition-all transform active:scale-[0.98]">
+                        Ya, Keluar
+                    </button>
+                    <button onclick="closeLogoutModal()"
+                        class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-4 rounded-2xl transition-all transform active:scale-[0.98]">
+                        Batal
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Footer Placeholder -->
+    <div id="footer-placeholder"></div>
+
     <!-- Scripts -->
     <script src="/js/modules/api.js"></script>
+    <script src="/js/modules/components.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
     <script src="/js/pages/orders.js"></script>
 </body>

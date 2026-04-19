@@ -6,61 +6,15 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
     }
 
-    // Load user profile data
-    loadUserProfile(user);
 
-    // Profile dropdown logic
-    const profileBtn = document.getElementById('profile-btn');
-    const profileDropdown = document.getElementById('profile-dropdown');
-    const logoutBtn = document.getElementById('logout-btn');
-    const profileLink = document.querySelector('#profile-dropdown a[href="#"]');
-
-    if (profileBtn) {
-        profileBtn.addEventListener('click', function (e) {
-            e.stopPropagation();
-            profileDropdown.classList.toggle('hidden');
-        });
-    }
-
-    if (profileLink) {
-        profileLink.addEventListener('click', function (e) {
-            e.preventDefault();
-            profileDropdown.classList.add('hidden');
-            Swal.fire({
-                title: 'Profile',
-                text: 'Fitur profile akan segera hadir!',
-                icon: 'info',
-                confirmButtonColor: '#dc2626'
-            });
-        });
-    }
-
-    document.addEventListener('click', function (e) {
-        if (profileBtn && profileDropdown && !profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
-            profileDropdown.classList.add('hidden');
+    // Handle profile display once component is loaded
+    document.addEventListener('profileNavLoaded', () => {
+        const profileSection = document.getElementById('profile-section');
+        if (user && profileSection) {
+            profileSection.classList.remove('hidden');
+            loadUserProfile(user);
         }
     });
-
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', function () {
-            Swal.fire({
-                title: 'Apakah Anda yakin?',
-                text: 'Anda akan keluar dari akun ini',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#dc2626',
-                cancelButtonColor: '#6b7280',
-                confirmButtonText: 'Ya, Logout',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    localStorage.removeItem('mki_user');
-                    localStorage.removeItem('mki_cart');
-                    window.location.href = '/';
-                }
-            });
-        });
-    }
 
     function loadUserProfile(user) {
         const userName = user.name || user.email || 'User';
