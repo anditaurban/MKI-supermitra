@@ -1,6 +1,22 @@
 // Global state for brands highlight
 let allHighlights = [];
 let isHighlightsExpanded = false;
+let allBrands = [];
+let isBrandsExpanded = false;
+let mitraMap = null;
+
+const mitraSpreadPoints = [
+    { city: 'Medan', region: 'Sumatera Utara', coords: [3.5952, 98.6722], total: 18, growth: '+12%' },
+    { city: 'Palembang', region: 'Sumatera Selatan', coords: [-2.9761, 104.7754], total: 10, growth: '+9%' },
+    { city: 'Jakarta', region: 'DKI Jakarta', coords: [-6.2088, 106.8456], total: 44, growth: '+21%' },
+    { city: 'Bandung', region: 'Jawa Barat', coords: [-6.9175, 107.6191], total: 22, growth: '+17%' },
+    { city: 'Semarang', region: 'Jawa Tengah', coords: [-6.9667, 110.4167], total: 14, growth: '+11%' },
+    { city: 'Surabaya', region: 'Jawa Timur', coords: [-7.2575, 112.7521], total: 16, growth: '+15%' },
+    { city: 'Balikpapan', region: 'Kalimantan Timur', coords: [-1.2654, 116.8312], total: 11, growth: '+10%' },
+    { city: 'Makassar', region: 'Sulawesi Selatan', coords: [-5.1477, 119.4327], total: 12, growth: '+13%' },
+    { city: 'Ambon', region: 'Maluku', coords: [-3.6547, 128.1903], total: 6, growth: '+8%' },
+    { city: 'Jayapura', region: 'Papua', coords: [-2.5916, 140.669], total: 5, growth: '+7%' }
+];
 
 document.addEventListener('DOMContentLoaded', async () => {
     // --- 1. Authenticaton & Profile Management ---
@@ -32,6 +48,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const highlightGrid = document.getElementById('highlightGrid');
     const brandsGrid = document.getElementById('brandsGrid');
     const highlightsAction = document.getElementById('highlightsAction');
+    const brandsAction = document.getElementById('brandsAction');
 
     if (highlightGrid || brandsGrid) {
         try {
@@ -75,7 +92,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // Render the brand cards
                 const brandsList = countContent.listData || [];
                 if (brandsGrid && brandsList.length > 0) {
-                    renderBrands(brandsList);
+                    allBrands = brandsList;
+                    renderBrands();
+                    if (brandsAction && allBrands.length > getInitialBrandLimit()) {
+                        brandsAction.classList.remove('hidden');
+                    }
                 } else if (brandsGrid) {
                     brandsGrid.innerHTML = '<div class="col-span-full text-center py-10 text-slate-500">Data statistik brand belum tersedia.</div>';
                 }
@@ -90,6 +111,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (brandsGrid) brandsGrid.innerHTML = errorMsg;
         }
     }
+
+    window.addEventListener('resize', handleBrandResize);
+    initializeMitraLeafletMap();
 
     // --- 3. Login Modal & OTP Logic ---
     const loginModal = document.getElementById('loginModal');
@@ -435,7 +459,10 @@ window.toggleHighlightView = function () {
 function renderBrands(listData) {
     const brandsGrid = document.getElementById('brandsGrid');
     if (!brandsGrid) return;
-    brandsGrid.innerHTML = listData.map(brand => {
+    const source = Array.isArray(listData) ? listData : allBrands;
+    const visibleBrands = isBrandsExpanded ? source : source.slice(0, getInitialBrandLimit());
+
+    brandsGrid.innerHTML = visibleBrands.map(brand => {
         const hasMainImage = brand.logo || brand.thumbnail;
         const displayImage = hasMainImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(brand.business_category)}&background=dc2626&color=fff&size=512`;
 
@@ -464,6 +491,102 @@ function renderBrands(listData) {
             </a>
         `;
     }).join('');
+
+    updateBrandsToggle();
+}
+
+function getInitialBrandLimit() {
+    if (window.innerWidth >= 1024) return 4;
+    if (window.innerWidth >= 768) return 3;
+    return 2;
+}
+
+function updateBrandsToggle() {
+    const brandsAction = document.getElementById('brandsAction');
+    const btnText = document.getElementById('toggleBrandsText');
+    const btnIcon = document.querySelector('#btnToggleBrands svg');
+    if (!brandsAction || !btnText) return;
+
+    const shouldShowToggle = allBrands.length > getInitialBrandLimit();
+    brandsAction.classList.toggle('hidden', !shouldShowToggle);
+
+    if (!shouldShowToggle) return;
+
+    btnText.textContent = isBrandsExpanded ? 'Tampilkan Lebih Sedikit' : 'Lihat Selengkapnya';
+    if (btnIcon) {
+        btnIcon.classList.toggle('rotate-180', isBrandsExpanded);
+    }
+}
+
+function handleBrandResize() {
+    if (!allBrands.length || isBrandsExpanded) return;
+    renderBrands();
+}
+
+window.toggleBrandsView = function () {
+    if (!allBrands.length) return;
+
+    isBrandsExpanded = !isBrandsExpanded;
+    renderBrands();
+
+    if (!isBrandsExpanded) {
+        const brandsGrid = document.getElementById('brandsGrid');
+        if (brandsGrid) {
+            brandsGrid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+}
+
+function initializeMitraLeafletMap() {
+    const mapContainer = document.getElementById('indonesiaLeafletMap');
+    if (!mapContainer || typeof window.L === 'undefined' || mitraMap) return;
+
+    mitraMap = window.L.map(mapContainer, {
+        zoomControl: true,
+        scrollWheelZoom: false,
+        minZoom: 4,
+        maxZoom: 10
+    });
+
+    const indonesiaBounds = window.L.latLngBounds(
+        window.L.latLng(-11.5, 94.0),
+        window.L.latLng(6.5, 141.5)
+    );
+
+    mitraMap.fitBounds(indonesiaBounds, { padding: [10, 10] });
+    mitraMap.setMaxBounds(indonesiaBounds.pad(0.15));
+
+    window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(mitraMap);
+
+    const markerIcon = window.L.divIcon({
+        className: '',
+        html: '<div class="mitra-map-marker"></div>',
+        iconSize: [18, 18],
+        iconAnchor: [9, 9],
+        popupAnchor: [0, -8]
+    });
+
+    mitraSpreadPoints.forEach(point => {
+        const marker = window.L.marker(point.coords, { icon: markerIcon }).addTo(mitraMap);
+        marker.bindPopup(`
+            <div class="min-w-[180px]">
+                <p class="text-sm font-bold text-slate-900">${point.city}</p>
+                <p class="text-xs text-slate-500 mt-1">${point.region}</p>
+                <div class="mt-3 flex items-center justify-between gap-3">
+                    <span class="inline-flex rounded-full bg-red-50 px-2.5 py-1 text-[11px] font-bold text-red-600">${point.total} pendaftar</span>
+                    <span class="text-[11px] font-bold text-emerald-600">${point.growth}</span>
+                </div>
+            </div>
+        `, {
+            className: 'mitra-map-popup'
+        });
+    });
+
+    setTimeout(() => {
+        mitraMap.invalidateSize();
+    }, 150);
 }
 
 // Dual-load strategy for thumbnails requiring authentication

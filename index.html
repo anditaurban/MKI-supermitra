@@ -17,6 +17,10 @@
     <!-- REMIXICON -->
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet" />
 
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
 
@@ -41,6 +45,31 @@
         .otp-box:focus {
             transform: translateY(-2px);
             box-shadow: 0 10px 15px -3px rgba(220, 38, 38, 0.1);
+        }
+
+        .mitra-map {
+            min-height: 420px;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            background: linear-gradient(180deg, #fee2e2 0%, #ffffff 100%);
+        }
+
+        .mitra-map .leaflet-control-attribution {
+            font-size: 10px;
+        }
+
+        .mitra-map-marker {
+            width: 18px;
+            height: 18px;
+            background: #dc2626;
+            border: 4px solid rgba(255, 255, 255, 0.92);
+            border-radius: 9999px;
+            box-shadow: 0 10px 25px rgba(220, 38, 38, 0.28);
+        }
+
+        .mitra-map-popup .leaflet-popup-content-wrapper {
+            border-radius: 1rem;
+            box-shadow: 0 16px 40px rgba(15, 23, 42, 0.14);
         }
     </style>
 </head>
@@ -257,6 +286,128 @@
                 <div id="brandsGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
                     <!-- Skeletons... -->
                 </div>
+
+                <div id="brandsAction" class="mt-10 text-center hidden">
+                    <button onclick="toggleBrandsView()" id="btnToggleBrands"
+                        class="inline-flex items-center justify-center bg-white border-2 border-neutral-200 hover:border-red-600 text-slate-700 hover:text-red-600 font-bold px-10 py-4 rounded-2xl transition-all transform hover:-translate-y-1 shadow-sm hover:shadow-lg group">
+                        <span id="toggleBrandsText">Lihat Selengkapnya</span>
+                        <svg class="w-5 h-5 ml-2 transform group-hover:translate-y-1 transition-transform" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
+                            </path>
+                        </svg>
+                    </button>
+                </div>
+
+                <section id="mitraSpread" class="mt-16 lg:mt-20">
+                    <div class="relative overflow-hidden rounded-[2rem] border border-red-100 bg-gradient-to-br from-red-50 via-white to-amber-50 shadow-xl shadow-red-100/40">
+                        <div class="absolute -top-24 -right-20 h-60 w-60 rounded-full bg-red-200/30 blur-3xl pointer-events-none"></div>
+                        <div class="absolute -bottom-24 -left-20 h-64 w-64 rounded-full bg-amber-200/30 blur-3xl pointer-events-none"></div>
+
+                        <div class="relative grid gap-10 lg:grid-cols-[1.2fr_0.8fr] p-6 sm:p-8 lg:p-10">
+                            <div>
+                                <div class="max-w-2xl">
+                                    <span class="inline-flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.28em] text-red-600 border border-red-100">
+                                        Peta Persebaran Mitra
+                                    </span>
+                                    <h3 class="mt-5 font-poppins text-2xl md:text-3xl font-bold text-slate-900 leading-tight">
+                                        Persebaran pendaftar kemitraan MKI di berbagai wilayah Indonesia
+                                    </h3>
+                                    <p class="mt-4 text-sm md:text-base leading-relaxed text-slate-600 max-w-xl">
+                                        Visual ini menunjukkan konsentrasi minat kemitraan MKI dari barat hingga timur Indonesia, dengan titik pertumbuhan terbesar berada di kota-kota pusat kuliner dan perdagangan.
+                                    </p>
+                                </div>
+
+                                <div class="mt-8 rounded-[1.75rem] border border-white/70 bg-white/85 p-4 sm:p-6 shadow-lg shadow-red-100/30 backdrop-blur-sm">
+                                    <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+                                        <div>
+                                            <p class="text-sm font-semibold text-slate-500">Cakupan Nasional</p>
+                                            <p class="text-xl sm:text-2xl font-bold text-slate-900 font-poppins">Jejak Mitra Indonesia</p>
+                                        </div>
+                                        <div class="inline-flex items-center gap-2 rounded-full bg-red-600 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-red-600/20">
+                                            <span class="h-2.5 w-2.5 rounded-full bg-white"></span>
+                                            Update Persebaran 2026
+                                        </div>
+                                    </div>
+
+                                    <div id="indonesiaLeafletMap" class="mitra-map w-full" data-map-mode="leaflet" aria-label="Peta persebaran mitra MKI di Indonesia"></div>
+                                </div>
+                            </div>
+
+                            <div class="space-y-4">
+                                <div class="rounded-[1.75rem] border border-slate-200 bg-white/90 p-6 shadow-lg shadow-slate-200/40">
+                                    <p class="text-sm font-semibold text-slate-500">Total Calon Mitra</p>
+                                    <div class="mt-3 flex items-end gap-3">
+                                        <span class="font-poppins text-4xl font-bold text-slate-900">214</span>
+                                        <span class="mb-1 inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-600">+18% bulan ini</span>
+                                    </div>
+                                    <p class="mt-3 text-sm leading-relaxed text-slate-600">
+                                        Pendaftar tersebar di lebih dari 40 kota dengan dominasi wilayah Jawa, Sumatera, dan Kalimantan.
+                                    </p>
+                                </div>
+
+                                <div class="rounded-[1.75rem] border border-slate-200 bg-white/90 p-6 shadow-lg shadow-slate-200/40">
+                                    <div class="flex items-center justify-between gap-3">
+                                        <h4 class="font-poppins text-lg font-bold text-slate-900">Wilayah Paling Aktif</h4>
+                                        <span class="rounded-full bg-red-50 px-3 py-1 text-xs font-bold text-red-600">Top 4</span>
+                                    </div>
+                                    <div class="mt-5 space-y-4">
+                                        <div>
+                                            <div class="mb-2 flex items-center justify-between text-sm font-semibold text-slate-700">
+                                                <span>Jawa</span>
+                                                <span>96</span>
+                                            </div>
+                                            <div class="h-2.5 rounded-full bg-slate-100 overflow-hidden">
+                                                <div class="h-full w-[88%] rounded-full bg-red-600"></div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="mb-2 flex items-center justify-between text-sm font-semibold text-slate-700">
+                                                <span>Sumatera</span>
+                                                <span>42</span>
+                                            </div>
+                                            <div class="h-2.5 rounded-full bg-slate-100 overflow-hidden">
+                                                <div class="h-full w-[56%] rounded-full bg-rose-500"></div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="mb-2 flex items-center justify-between text-sm font-semibold text-slate-700">
+                                                <span>Kalimantan</span>
+                                                <span>31</span>
+                                            </div>
+                                            <div class="h-2.5 rounded-full bg-slate-100 overflow-hidden">
+                                                <div class="h-full w-[42%] rounded-full bg-orange-500"></div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="mb-2 flex items-center justify-between text-sm font-semibold text-slate-700">
+                                                <span>Sulawesi</span>
+                                                <span>27</span>
+                                            </div>
+                                            <div class="h-2.5 rounded-full bg-slate-100 overflow-hidden">
+                                                <div class="h-full w-[36%] rounded-full bg-amber-500"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="rounded-[1.75rem] border border-red-100 bg-slate-900 p-6 text-white shadow-xl shadow-slate-900/10">
+                                    <p class="text-sm font-semibold text-red-200">Insight MKI</p>
+                                    <p class="mt-3 text-lg font-bold font-poppins leading-snug">
+                                        Minat kemitraan paling kuat datang dari area urban, koridor logistik utama, dan kota satelit dengan pertumbuhan UMKM kuliner tinggi.
+                                    </p>
+                                    <div class="mt-5 flex flex-wrap gap-2">
+                                        <span class="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold">Jabodetabek</span>
+                                        <span class="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold">Bandung Raya</span>
+                                        <span class="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold">Surabaya Raya</span>
+                                        <span class="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold">Medan</span>
+                                        <span class="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold">Makassar</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
             </section>
 
             <!-- Testimonials Segment -->
@@ -461,6 +612,8 @@
     <script src="/js/modules/components.js"></script>
     <!-- SweetAlert2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script type="module" src="/js/pages/index.js"></script>
 </body>
 
