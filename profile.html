@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/webp" href="/assets/images/logo.webp">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil Saya - Master Kuliner Indonesia</title>
+
+    <!-- FONT POPPINS & INTER -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- REMIXICON -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet" />
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/js/config.js"></script>
+    <link href="/css/main.css" rel="stylesheet">
+</head>
+
+<body class="bg-slate-50 font-inter text-slate-800 antialiased overflow-x-hidden min-h-screen flex flex-col">
+
+    <!-- Navbar -->
+    <header
+        class="fixed top-0 left-0 right-0 w-full z-50 transition-all duration-300 bg-white/95 backdrop-blur-sm border-b border-neutral-100 h-20">
+        <div class="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
+            <a class="cursor-pointer flex items-center gap-3" href="/">
+                <div class="w-24">
+                    <img src="/assets/images/logo.webp" alt="Logo" class="w-full h-full object-contain">
+                </div>
+            </a>
+            <div class="flex items-center gap-4">
+                <a href="/store.html"
+                    class="p-2 text-slate-700 hover:text-red-600 transition-colors hidden md:flex items-center gap-2 text-sm font-medium">
+                    <i class="ri-store-2-line text-xl"></i> Belanja
+                </a>
+                <!-- Global Profile Navigation Placeholder -->
+                <div id="profile-nav-placeholder"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow pt-24 pb-16">
+        <div class="container mx-auto px-4 max-w-4xl">
+
+            <!-- Page Header -->
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold font-poppins text-slate-900">Profil Saya</h1>
+                <p class="text-slate-500 mt-1">Kelola informasi pribadi dan data keanggotaan Anda.</p>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loading-state" class="flex flex-col items-center justify-center py-20">
+                <div
+                    class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-slate-200 border-t-red-600">
+                </div>
+                <p class="mt-4 text-slate-500 font-medium">Memuat profil Anda...</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="error-state"
+                class="hidden flex flex-col items-center justify-center py-20 bg-white rounded-3xl shadow-sm border border-neutral-100">
+                <div class="bg-red-100 p-4 rounded-full mb-4">
+                    <i class="ri-error-warning-fill text-3xl text-red-600"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-900 font-poppins">Gagal Mendapatkan Profil</h3>
+                <p class="text-slate-500 mt-2 text-center max-w-md" id="error-message">Terjadi kesalahan pada server.
+                    Silakan coba kembali nanti.</p>
+                <button onclick="window.location.reload()"
+                    class="mt-6 px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-md transition-colors">
+                    Coba Lagi
+                </button>
+            </div>
+
+            <!-- Profile Content Container -->
+            <div id="profile-content" class="hidden">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+
+                    <!-- Left Column: Hero Card -->
+                    <div class="md:col-span-1 space-y-6">
+                        <!-- Main Profile Card -->
+                        <div
+                            class="bg-white rounded-3xl p-6 shadow-sm border border-neutral-100 flex flex-col items-center text-center relative overflow-hidden group">
+                            <!-- Background accent -->
+                            <div class="absolute top-0 left-0 w-full h-24 bg-gradient-to-br from-red-600 to-red-800">
+                            </div>
+
+                            <!-- Avatar -->
+                            <div class="relative mt-8 mb-4">
+                                <div
+                                    class="w-32 h-32 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white z-10 relative">
+                                    <img id="profile-avatar" src="" alt="Profile Photo"
+                                        class="w-full h-full object-cover">
+                                </div>
+                                <div class="absolute bottom-1 right-1 bg-white p-1.5 rounded-full shadow-md z-20">
+                                    <div class="bg-green-500 w-4 h-4 rounded-full border-2 border-white" title="Active">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Identity -->
+                            <h2 id="profile-name" class="text-2xl font-bold font-poppins text-slate-900 leading-tight">
+                            </h2>
+                            <p id="profile-alias" class="text-slate-500 font-medium mt-1"></p>
+
+                            <div class="mt-6 w-full pt-6 border-t border-slate-100">
+                                <div class="flex flex-col gap-2">
+                                    <div class="flex justify-between items-center text-sm">
+                                        <span class="text-slate-500">ID Member</span>
+                                        <span id="profile-membership"
+                                            class="font-bold text-slate-900 bg-slate-100 px-3 py-1 rounded-lg"></span>
+                                    </div>
+                                    <div class="flex justify-between items-center text-sm mt-2">
+                                        <span class="text-slate-500">Status</span>
+                                        <span id="profile-status"
+                                            class="font-bold text-green-700 bg-green-100 px-3 py-1 rounded-lg text-xs"></span>
+                                    </div>
+                                    <div class="flex justify-between items-center text-sm mt-2">
+                                        <span class="text-slate-500">Bergabung</span>
+                                        <span id="profile-joindate" class="font-semibold text-slate-700"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Details -->
+                    <div class="md:col-span-2 space-y-6">
+
+                        <!-- Contact Info Card -->
+                        <div class="bg-white rounded-3xl p-6 shadow-sm border border-neutral-100">
+                            <h3
+                                class="text-lg font-bold font-poppins text-slate-900 border-b border-slate-100 pb-4 mb-4 flex items-center">
+                                <i class="ri-contacts-book-2-line text-red-600 mr-2 text-xl"></i> Informasi Kontak
+                            </h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="flex items-start">
+                                    <div class="bg-red-50 p-2 rounded-lg text-red-600 mr-3">
+                                        <i class="ri-whatsapp-line text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-0.5">
+                                            WhatsApp</p>
+                                        <p id="profile-whatsapp" class="font-medium text-slate-900"></p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start">
+                                    <div class="bg-slate-50 p-2 rounded-lg text-slate-600 mr-3">
+                                        <i class="ri-mail-line text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-0.5">
+                                            Email</p>
+                                        <p id="profile-email" class="font-medium text-slate-900 break-all"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Personal Info Card -->
+                        <div class="bg-white rounded-3xl p-6 shadow-sm border border-neutral-100">
+                            <h3
+                                class="text-lg font-bold font-poppins text-slate-900 border-b border-slate-100 pb-4 mb-4 flex items-center">
+                                <i class="ri-map-pin-user-line text-red-600 mr-2 text-xl"></i> Alamat & Dokumen
+                            </h3>
+
+                            <div class="space-y-5">
+                                <div class="flex items-start">
+                                    <div class="bg-slate-50 p-2 rounded-lg text-slate-600 mr-3 mt-0.5">
+                                        <i class="ri-home-4-line text-xl"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1">
+                                            Alamat Domisili</p>
+                                        <p id="profile-address" class="text-slate-900 font-medium"></p>
+                                        <p id="profile-region" class="text-sm text-slate-500 mt-1"></p>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-slate-50">
+                                    <div class="flex items-start">
+                                        <div class="bg-slate-50 p-2 rounded-lg text-slate-600 mr-3">
+                                            <i class="ri-id-card-line text-xl"></i>
+                                        </div>
+                                        <div>
+                                            <p
+                                                class="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-0.5">
+                                                NIK</p>
+                                            <p id="profile-nik" class="font-medium text-slate-900"></p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <div class="bg-slate-50 p-2 rounded-lg text-slate-600 mr-3">
+                                            <i class="ri-calendar-event-line text-xl"></i>
+                                        </div>
+                                        <div>
+                                            <p
+                                                class="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-0.5">
+                                                Tanggal Lahir</p>
+                                            <p id="profile-birth" class="font-medium text-slate-900"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Business Categories Card -->
+                        <div class="bg-white rounded-3xl p-6 shadow-sm border border-neutral-100">
+                            <h3
+                                class="text-lg font-bold font-poppins text-slate-900 border-b border-slate-100 pb-4 mb-4 flex items-center">
+                                <i class="ri-store-2-line text-red-600 mr-2 text-xl"></i> Kategori Bisnis Aktif
+                            </h3>
+                            <div id="profile-business-cats" class="flex flex-wrap gap-2">
+                                <!-- Chips will be injected here -->
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Footer Action -->
+                <div class="mt-8 text-center text-sm text-slate-400">
+                    <p>Memiliki kendala dengan data profil Anda? <br class="md:hidden"> Hubungi tim Support.</p>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Logout Modal -->
+    <div id="logout-modal"
+        class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden opacity-0 transition-opacity duration-300">
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
+            <div
+                class="relative bg-white rounded-3xl overflow-hidden shadow-2xl transform scale-95 transition-all duration-300 w-full max-w-sm p-6 sm:p-8">
+                <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="ri-logout-box-r-line text-3xl text-red-600"></i>
+                </div>
+
+                <h2 class="text-xl font-bold text-slate-900 font-poppins mb-2">Keluar Akun?</h2>
+                <p class="text-slate-500 text-sm mb-8">Anda perlu masuk kembali untuk mengakses portal kemitraan Anda.
+                </p>
+
+                <div class="space-y-3">
+                    <button onclick="confirmLogout()"
+                        class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3.5 rounded-2xl shadow-lg shadow-red-600/20 transition-all transform active:scale-[0.98]">
+                        Ya, Keluar
+                    </button>
+                    <button onclick="closeLogoutModal()"
+                        class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3.5 rounded-2xl transition-all transform active:scale-[0.98]">
+                        Batal
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Footer Placeholder -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Scripts -->
+    <script src="/js/modules/api.js"></script>
+    <script src="/js/modules/components.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+    <script src="/js/pages/profile.js"></script>
+</body>
+
+</html>
