@@ -8,19 +8,53 @@ document.addEventListener('DOMContentLoaded', function () {
 
     let cart = JSON.parse(localStorage.getItem('mki_cart')) || [];
     let products = [];
+    let searchTerm = '';
+    let selectedCategory = 'All'; // For Business Category Chips
+    let selectedProductCategory = 'All'; // For Product Category Dropdown
+    let priceSort = 'Default'; // For Price Sorting
 
     // Load products
     loadProducts();
 
     // Search functionality
     document.getElementById('search-input').addEventListener('input', function (e) {
-        const searchTerm = e.target.value.toLowerCase();
-        const filteredProducts = products.filter(product =>
-            product.name.toLowerCase().includes(searchTerm) ||
-            product.description.toLowerCase().includes(searchTerm)
-        );
-        renderProducts(filteredProducts);
+        searchTerm = e.target.value.toLowerCase();
+        applyFilters();
     });
+
+    // Dropdown filters
+    document.getElementById('product-category-select').addEventListener('change', function (e) {
+        selectedProductCategory = e.target.value;
+        applyFilters();
+    });
+
+    document.getElementById('price-sort-select').addEventListener('change', function (e) {
+        priceSort = e.target.value;
+        applyFilters();
+    });
+
+    function applyFilters() {
+        const filteredProducts = products.filter(product => {
+            const matchesSearch = 
+                product.name.toLowerCase().includes(searchTerm) || 
+                product.description.toLowerCase().includes(searchTerm) ||
+                (product.business_category && product.business_category.toLowerCase().includes(searchTerm));
+            
+            const matchesCategory = selectedCategory === 'All' || product.business_category === selectedCategory;
+            const matchesProductCat = selectedProductCategory === 'All' || product.category === selectedProductCategory;
+            
+            return matchesSearch && matchesCategory && matchesProductCat;
+        });
+
+        // Apply Sorting
+        if (priceSort === 'asc') {
+            filteredProducts.sort((a, b) => a.price - b.price);
+        } else if (priceSort === 'desc') {
+            filteredProducts.sort((a, b) => b.price - a.price);
+        }
+
+        renderProducts(filteredProducts);
+    }
 
     // Cart modal
     document.getElementById('cart-btn').addEventListener('click', function () {
@@ -66,10 +100,18 @@ document.addEventListener('DOMContentLoaded', function () {
             icon: 'info',
             title: 'Pemberitahuan',
             text: 'Harga yang tertera belum termasuk ongkos kirim. Tim Sales kami akan menghubungi Anda untuk konfirmasi biaya pengiriman dan proses pembayaran selanjutnya.',
+            showCancelButton: true,
             confirmButtonText: 'Lanjutkan Checkout',
+            cancelButtonText: 'Batal',
+            background: '#ffffff',
+            color: '#1e293b',
+            iconColor: '#3b82f6', // blue-500 since it's an info icon
             customClass: {
-                confirmButton: 'bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded'
-            }
+                popup: 'rounded-2xl shadow-xl border border-neutral-100',
+                confirmButton: 'bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 px-5 rounded-lg mx-2 transition-colors',
+                cancelButton: 'bg-neutral-100 hover:bg-neutral-200 text-slate-700 font-bold py-2.5 px-5 rounded-lg mx-2 transition-colors border border-neutral-200'
+            },
+            buttonsStyling: false
         }).then((result) => {
             if (result.isConfirmed) {
                 checkoutCart();
@@ -125,13 +167,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     name: item.product,
                     description: item.description || `${item.category} - ${item.unit}`,
                     price: item.sale_price,
-                    image: '/assets/images/brands/CCC.webp', // Default image since API doesn't provide images
+                    image: item.photo ? item.photo : `https://ui-avatars.com/api/?name=${encodeURIComponent(item.product)}&background=f1f5f9&color=dc2626&size=400&bold=true`,
                     stock: item.stock,
                     category: item.category,
                     business_category: item.business_category
                 }));
 
                 document.getElementById('loading').style.display = 'none';
+                setupFilters(products);
                 renderProducts(products);
             })
             .catch(error => {
@@ -148,6 +191,63 @@ document.addEventListener('DOMContentLoaded', function () {
             `;
             });
     }
+
+    function setupFilters(allProducts) {
+        // Setup Business Category Chips
+        const filterContainer = document.getElementById('category-filters');
+        if (filterContainer) {
+            const categories = [...new Set(allProducts
+                .map(p => p.business_category)
+                .filter(cat => cat !== null && cat !== undefined && cat !== '')
+            )].sort();
+            renderFilterChips(categories);
+        }
+
+        // Setup Product Category Dropdown
+        const productCategorySelect = document.getElementById('product-category-select');
+        if (productCategorySelect) {
+            const productCategories = [...new Set(allProducts
+                .map(p => p.category)
+                .filter(cat => cat !== null && cat !== undefined && cat !== '')
+            )].sort();
+            
+            // Clear existing except first option
+            productCategorySelect.innerHTML = '<option value="All">Semua Kategori</option>';
+            
+            productCategories.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat;
+                option.textContent = cat;
+                productCategorySelect.appendChild(option);
+            });
+        }
+    }
+
+    function renderFilterChips(categories) {
+        const filterContainer = document.getElementById('category-filters');
+        
+        const allChips = [
+            `<button onclick="setCategoryFilter('All')" class="category-chip ${selectedCategory === 'All' ? 'active-chip' : 'inactive-chip'}">Semua</button>`,
+            ...categories.map(cat => `
+                <button onclick="setCategoryFilter('${cat}')" class="category-chip ${selectedCategory === cat ? 'active-chip' : 'inactive-chip'}">${cat}</button>
+            `)
+        ].join('');
+
+        filterContainer.innerHTML = allChips;
+    }
+
+    window.setCategoryFilter = function(category) {
+        selectedCategory = category;
+        applyFilters();
+        
+        // Update active class on chips
+        const allProductsForUpdatingChips = products; // closure
+        const categories = [...new Set(allProductsForUpdatingChips
+            .map(p => p.business_category)
+            .filter(cat => cat !== null && cat !== undefined && cat !== '')
+        )].sort();
+        renderFilterChips(categories);
+    };
 
     function renderProducts(productsToRender) {
         const grid = document.getElementById('products-grid');
@@ -175,12 +275,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="aspect-square overflow-hidden bg-neutral-100 relative">
                     <img alt="${product.name}" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300" src="${product.image}">
                 </div>
-                <div class="p-4 flex-1 flex flex-col">
-                    <h3 class="font-poppins text-lg font-bold text-slate-900 mb-2 line-clamp-2" title="${product.name}">${product.name}</h3>
-                    <p class="text-sm text-slate-500 leading-relaxed mb-4 line-clamp-2">${product.description}</p>
-                    <div class="flex items-center justify-between mt-auto">
-                        <span class="font-bold text-red-600">Rp ${product.price.toLocaleString()}</span>
-                        <button onclick="addToCart(${product.id})" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-colors shadow-sm">
+                <div class="p-3 md:p-4 flex-1 flex flex-col">
+                    <h3 class="font-poppins text-sm md:text-lg font-bold text-slate-900 mb-1 md:mb-2 line-clamp-2" title="${product.name}">${product.name}</h3>
+                    <p class="text-xs md:text-sm text-slate-500 leading-relaxed mb-2 md:mb-4 line-clamp-2">${product.description}</p>
+                    <div class="flex flex-col md:flex-row items-start md:items-center justify-between mt-auto gap-2 md:gap-0">
+                        <span class="font-bold text-sm md:text-base text-red-600 w-full md:w-auto">Rp ${product.price.toLocaleString()}</span>
+                        <button onclick="addToCart(${product.id})" class="w-full md:w-auto bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-semibold text-xs md:text-sm transition-colors shadow-sm">
                             Tambah
                         </button>
                     </div>
@@ -287,10 +387,17 @@ document.addEventListener('DOMContentLoaded', function () {
             text: 'Apakah Anda yakin ingin menghapus semua item dari keranjang?',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#dc2626',
-            cancelButtonColor: '#6b7280',
             confirmButtonText: 'Ya, Hapus Semua',
-            cancelButtonText: 'Batal'
+            cancelButtonText: 'Batal',
+            background: '#ffffff',
+            color: '#1e293b',
+            iconColor: '#dc2626', // red-600 for warning/delete
+            customClass: {
+                popup: 'rounded-2xl shadow-xl border border-neutral-100',
+                confirmButton: 'bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 px-5 rounded-lg mx-2 transition-colors',
+                cancelButton: 'bg-neutral-100 hover:bg-neutral-200 text-slate-700 font-bold py-2.5 px-5 rounded-lg mx-2 transition-colors border border-neutral-200'
+            },
+            buttonsStyling: false
         }).then((result) => {
             if (result.isConfirmed) {
                 cart = [];
