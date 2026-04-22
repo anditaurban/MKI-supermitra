@@ -20,6 +20,12 @@
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="/css/main.css" rel="stylesheet">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+    <style>
+        /* Map container size for booth editor */
+        .booth-map { height: 320px; border-radius: 12px; }
+    </style>
 </head>
 
 <body class="bg-slate-50 font-inter text-slate-800 antialiased overflow-x-hidden min-h-screen flex flex-col">
@@ -143,8 +149,17 @@
                     <!-- Right Column: Details -->
                     <div class="md:col-span-2 space-y-6">
 
+                        <!-- Top Tabs for Right Column -->
+                        <div class="bg-white rounded-3xl p-3 shadow-sm border border-neutral-100">
+                            <div class="flex items-center gap-3">
+                                <button id="tab-contact" class="px-4 py-2 rounded-xl bg-red-600 text-white font-semibold">Informasi Kontak</button>
+                                <button id="tab-booth" class="px-4 py-2 rounded-xl bg-slate-50 text-slate-700 font-semibold">Titik Jualan</button>
+                                <button id="tab-testimonial" class="px-4 py-2 rounded-xl bg-slate-50 text-slate-700 font-semibold">Pengisian Testimoni</button>
+                            </div>
+                        </div>
+
                         <!-- Contact Info Card -->
-                        <div class="bg-white rounded-3xl p-6 shadow-sm border border-neutral-100">
+                        <div id="panel-contact" class="bg-white rounded-3xl p-6 shadow-sm border border-neutral-100">
                             <h3
                                 class="text-lg font-bold font-poppins text-slate-900 border-b border-slate-100 pb-4 mb-4 flex items-center">
                                 <i class="ri-contacts-book-2-line text-red-600 mr-2 text-xl"></i> Informasi Kontak
@@ -174,7 +189,7 @@
                         </div>
 
                         <!-- Personal Info Card -->
-                        <div class="bg-white rounded-3xl p-6 shadow-sm border border-neutral-100">
+                        <div id="panel-personal" class="bg-white rounded-3xl p-6 shadow-sm border border-neutral-100">
                             <h3
                                 class="text-lg font-bold font-poppins text-slate-900 border-b border-slate-100 pb-4 mb-4 flex items-center">
                                 <i class="ri-map-pin-user-line text-red-600 mr-2 text-xl"></i> Alamat & Dokumen
@@ -221,7 +236,7 @@
                         </div>
 
                         <!-- Business Categories Card -->
-                        <div class="bg-white rounded-3xl p-6 shadow-sm border border-neutral-100">
+                        <div id="panel-business" class="bg-white rounded-3xl p-6 shadow-sm border border-neutral-100">
                             <h3
                                 class="text-lg font-bold font-poppins text-slate-900 border-b border-slate-100 pb-4 mb-4 flex items-center">
                                 <i class="ri-store-2-line text-red-600 mr-2 text-xl"></i> Kategori Bisnis Aktif
@@ -230,6 +245,81 @@
                                 <!-- Chips will be injected here -->
                             </div>
                         </div>
+
+                        <!-- Booth Location Card -->
+                        <div id="panel-booth" class="bg-white rounded-3xl p-6 shadow-sm border border-neutral-100 hidden">
+                                <h3 class="text-lg font-bold font-poppins text-slate-900 border-b border-slate-100 pb-4 mb-4 flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <i class="ri-map-pin-2-line text-red-600 mr-2 text-xl"></i> Data Titik Jualan (Booth)
+                                    </div>
+                                    <div class="inline-flex bg-slate-50 rounded-xl p-1">
+                                        <button id="tab-editor" class="px-4 py-2 rounded-xl text-sm font-semibold bg-white">Editor</button>
+                                        <button id="tab-list" class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100">Daftar</button>
+                                    </div>
+                                </h3>
+
+                                <div id="tab-editor-panel" class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Kategori Bisnis</label>
+                                        <select id="booth-category" class="w-full px-4 py-2.5 rounded-xl border border-neutral-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none">
+                                            <option value="">Pilih kategori</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Nama Booth</label>
+                                        <input id="booth-name" type="text" class="w-full px-4 py-2.5 rounded-xl border border-neutral-200" placeholder="Contoh: Booth Nasi Goreng Pak Budi">
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Alamat Booth</label>
+                                        <textarea id="booth-address" rows="2" class="w-full px-4 py-2.5 rounded-xl border border-neutral-200 resize-none" placeholder="Alamat lengkap booth"></textarea>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Latitude (lat)</label>
+                                            <input id="booth-lat" type="text" class="w-full px-4 py-2.5 rounded-xl border border-neutral-200" placeholder="-6.200000">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Longitude (lng)</label>
+                                            <input id="booth-lng" type="text" class="w-full px-4 py-2.5 rounded-xl border border-neutral-200" placeholder="106.816666">
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Pilih Lokasi Booth di Peta</label>
+                                        <div id="boothMap" class="booth-map border"></div>
+                                        <p class="text-xs text-slate-500 mt-2">Klik peta atau seret penanda untuk memperbarui koordinat.</p>
+                                    </div>
+
+                                    <div class="flex justify-end gap-3 pt-2">
+                                        <button id="btn-reset-booth" type="button" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200">Reset</button>
+                                        <button id="btn-save-booth" type="button" class="px-4 py-2 rounded-xl bg-red-600 text-white hover:bg-red-700">Simpan Titik Jualan</button>
+                                    </div>
+                                </div>
+
+                                <div id="tab-list-panel" class="hidden">
+                                    <div class="overflow-x-auto">
+                                        <table id="booth-list-table" class="w-full text-sm table-auto">
+                                            <thead>
+                                                <tr class="text-left bg-slate-50">
+                                                    <th class="px-3 py-2">#</th>
+                                                    <th class="px-3 py-2">Nama Booth</th>
+                                                    <th class="px-3 py-2">Kategori</th>
+                                                    <th class="px-3 py-2">Alamat</th>
+                                                    <th class="px-3 py-2">Lat</th>
+                                                    <th class="px-3 py-2">Lng</th>
+                                                    <th class="px-3 py-2">Aksi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr><td colspan="7" class="text-center py-6 text-slate-400">Memuat data titik jualan...</td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
 
                     </div>
                 </div>
@@ -267,6 +357,58 @@
                             <input type="text" id="edit-nama" name="nama"
                                 class="w-full px-4 py-2.5 rounded-xl border border-neutral-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none transition-all text-slate-700"
                                 placeholder="Masukkan nama lengkap">
+                        </div>
+
+                        <!-- Testimonial Card -->
+                        <div id="panel-testimonial" class="bg-white rounded-3xl p-6 shadow-sm border border-neutral-100 hidden">
+                            <h3 class="text-lg font-bold font-poppins text-slate-900 border-b border-slate-100 pb-4 mb-4 flex items-center">
+                                <i class="ri-chat-3-line text-red-600 mr-2 text-xl"></i> Pengisian Testimoni
+                            </h3>
+
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Judul Testimoni</label>
+                                    <input id="testi-title" type="text" class="w-full px-4 py-2.5 rounded-xl border border-neutral-200" placeholder="Judul singkat testimoni">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Isi Testimoni</label>
+                                    <textarea id="testi-body" rows="3" class="w-full px-4 py-2.5 rounded-xl border border-neutral-200 resize-none" placeholder="Tuliskan pengalaman Anda..."></textarea>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Rating (1-5)</label>
+                                        <input id="testi-rating" type="number" min="1" max="5" class="w-full px-4 py-2.5 rounded-xl border border-neutral-200" value="5">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Upload Foto (opsional)</label>
+                                        <input id="testi-photo" type="file" accept="image/*" class="w-full">
+                                    </div>
+                                </div>
+
+                                <div class="flex justify-end gap-3 pt-2">
+                                    <button id="btn-save-testimonial" class="px-4 py-2 rounded-xl bg-red-600 text-white">Kirim Testimoni</button>
+                                </div>
+
+                                <div class="pt-4">
+                                    <h4 class="font-semibold mb-2">Daftar Testimoni</h4>
+                                    <div class="overflow-x-auto">
+                                        <table id="testimonial-table" class="w-full text-sm table-auto">
+                                            <thead>
+                                                <tr class="text-left bg-slate-50">
+                                                    <th class="px-3 py-2">#</th>
+                                                    <th class="px-3 py-2">Judul</th>
+                                                    <th class="px-3 py-2">Isi</th>
+                                                    <th class="px-3 py-2">Rating</th>
+                                                    <th class="px-3 py-2">Foto</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr><td colspan="5" class="text-center py-6 text-slate-400">Belum ada testimoni.</td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -362,6 +504,8 @@
     <script src="/js/modules/api.js"></script>
     <script src="/js/modules/components.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     <script src="/js/pages/profile.js"></script>
 </body>
 
