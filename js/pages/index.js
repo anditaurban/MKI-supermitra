@@ -579,6 +579,35 @@ function updateMitraSpreadStats() {
             `;
         }).join('');
     }
+
+    // --- Update Insight text & tags dynamically based on API data ---
+    const insightTextEl = document.getElementById('mitraInsightText');
+    const insightTagsEl = document.getElementById('mitraInsightTags');
+    try {
+        const topNames = sorted.slice(0, 5).map(r => r.region_name);
+
+        if (insightTextEl) {
+            if (topNames.length) {
+                // Join with commas and replace last comma with ' dan ' for natural Indonesian
+                const joined = topNames.join(', ').replace(/, ([^,]*)$/, ' dan $1');
+                insightTextEl.textContent = `Minat kemitraan paling kuat terlihat di ${joined}.`;
+            } else {
+                insightTextEl.textContent = 'Minat kemitraan tersebar di berbagai wilayah Indonesia.';
+            }
+        }
+
+        if (insightTagsEl) {
+            if (topNames.length) {
+                insightTagsEl.innerHTML = topNames.map(n => `
+                    <span class="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold">${n}</span>
+                `).join('');
+            } else {
+                insightTagsEl.innerHTML = '';
+            }
+        }
+    } catch (e) {
+        console.error('Gagal memperbarui insight mitra:', e);
+    }
 }
 
 function initializeMitraLeafletMap() {
