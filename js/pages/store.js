@@ -1,4 +1,28 @@
 document.addEventListener('DOMContentLoaded', function () {
+    // Ensure an authenticated-image fallback is available on this page.
+    if (!window.tryLoadAuthImage) {
+        window.tryLoadAuthImage = async function (img, url) {
+            if (!url) return;
+            // prevent infinite loop
+            img.onerror = null;
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `Bearer ${window.apiToken}`
+                    }
+                });
+
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                const blob = await response.blob();
+                const objectUrl = URL.createObjectURL(blob);
+                img.src = objectUrl;
+            } catch (err) {
+                console.error('Authenticated image fetch failed:', err);
+                img.src = 'https://placehold.co/600x400/f8fafc/cbd5e1?text=Unauthorized';
+            }
+        };
+    }
     // Check if user is logged in
     const user = JSON.parse(localStorage.getItem('mki_user'));
     if (!user) {
@@ -167,6 +191,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     name: item.product,
                     description: item.description || `${item.category} - ${item.unit}`,
                     price: item.sale_price,
+                    // keep original photo URL for potential authenticated fetch fallback
+                    rawPhoto: item.photo || null,
                     image: item.photo ? item.photo : `https://ui-avatars.com/api/?name=${encodeURIComponent(item.product)}&background=f1f5f9&color=dc2626&size=400&bold=true`,
                     stock: item.stock,
                     category: item.category,
@@ -270,10 +296,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     </span>
                 </div>
             ` : '';
-            productCard.innerHTML = `
+                productCard.innerHTML = `
                 ${badgeHtml}
                 <div class="aspect-square overflow-hidden bg-neutral-100 relative">
-                    <img alt="${product.name}" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300" src="${product.image}">
+                    <img alt="${product.name}" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300" src="${product.image}" ${product.rawPhoto ? `onerror="(window.tryLoadAuthImage||(()=>{}))(this, '${product.rawPhoto}')"` : ''}>
                 </div>
                 <div class="p-3 md:p-4 flex-1 flex flex-col">
                     <h3 class="font-poppins text-sm md:text-lg font-bold text-slate-900 mb-1 md:mb-2 line-clamp-2" title="${product.name}">${product.name}</h3>
@@ -433,7 +459,6 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!customerId) {
                 throw new Error('Customer ID not found');
             }
-            console.log('Using customer_id:', customerId);
 
             // Calculate totals
             const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -489,7 +514,6 @@ document.addEventListener('DOMContentLoaded', function () {
             checkoutBtn.classList.add('opacity-75', 'cursor-not-allowed');
 
             // Send API request
-            console.log('Sending checkout payload:', payload);
             const response = await fetch(`${baseUrl}/add/sales_msi`, {
                 method: 'POST',
                 headers: {
@@ -499,9 +523,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 body: JSON.stringify(payload)
             });
 
-            console.log('API Response status:', response.status);
-            console.log('API Response headers:', response.headers);
-
             if (!response.ok) {
                 const errorText = await response.text();
                 console.error('API Error response:', errorText);
@@ -509,7 +530,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             const result = await response.json();
-            console.log('API Success response:', result);
 
             // Reset button
             checkoutBtn.innerHTML = originalText;
