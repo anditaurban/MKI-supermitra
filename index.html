@@ -104,7 +104,8 @@
                     <!-- Global Profile Navigation Placeholder -->
                     <div id="profile-nav-placeholder"></div>
                 </div>
-                <button type="button" onclick="toggleMobileMenu()" class="md:hidden p-2 text-2xl text-slate-800 hover:bg-slate-50 rounded-xl transition-colors cursor-pointer">
+                <button type="button" onclick="toggleMobileMenu()"
+                    class="md:hidden p-2 text-2xl text-slate-800 hover:bg-slate-50 rounded-xl transition-colors cursor-pointer">
                     <i class="ri-menu-4-fill" id="mobileMenuIcon"></i>
                 </button>
             </div>
@@ -113,25 +114,30 @@
     </header>
 
     <!-- Mobile Menu Drawer -->
-    <div id="mobileMenu" class="fixed inset-0 top-20 bg-white z-[40] md:hidden transform translate-x-full transition-transform duration-300 ease-in-out border-t border-neutral-100 shadow-2xl invisible">
+    <div id="mobileMenu"
+        class="fixed inset-0 top-20 bg-white z-[40] md:hidden transform translate-x-full transition-transform duration-300 ease-in-out border-t border-neutral-100 shadow-2xl invisible">
         <div class="p-6 space-y-8 h-full overflow-y-auto">
-            
+
             <!-- Mobile User Segment -->
             <div id="mobile-user-segment" class="hidden mb-4 border-b border-neutral-50 pb-8 animate-modal-in">
                 <div class="flex items-center gap-4">
-                    <div class="w-14 h-14 bg-red-600 rounded-2xl flex items-center justify-center text-white text-xl font-black shadow-lg shadow-red-600/20" id="mobile-user-avatar">
+                    <div class="w-14 h-14 bg-red-600 rounded-2xl flex items-center justify-center text-white text-xl font-black shadow-lg shadow-red-600/20"
+                        id="mobile-user-avatar">
                         U
                     </div>
                     <div class="min-w-0">
                         <p class="text-lg font-bold text-slate-900 truncate" id="mobile-user-name">User Name</p>
-                        <p class="text-xs font-semibold text-red-600 uppercase tracking-wider" id="mobile-user-role">Partner</p>
+                        <p class="text-xs font-semibold text-red-600 uppercase tracking-wider" id="mobile-user-role">
+                            Partner</p>
                     </div>
                 </div>
                 <div class="mt-6 grid grid-cols-2 gap-3">
-                    <a href="/profile.html" class="bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold py-3.5 rounded-2xl text-center text-sm border border-neutral-100 transition-all active:scale-95">
+                    <a href="/profile.html"
+                        class="bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold py-3.5 rounded-2xl text-center text-sm border border-neutral-100 transition-all active:scale-95">
                         <i class="ri-user-settings-line mr-1"></i> Profil
                     </a>
-                    <button onclick="openLogoutModal()" class="bg-red-50 hover:bg-red-100 text-red-600 font-bold py-3.5 rounded-2xl text-center text-sm transition-all active:scale-95">
+                    <button onclick="openLogoutModal()"
+                        class="bg-red-50 hover:bg-red-100 text-red-600 font-bold py-3.5 rounded-2xl text-center text-sm transition-all active:scale-95">
                         <i class="ri-logout-circle-line mr-1"></i> Keluar
                     </button>
                 </div>
@@ -139,12 +145,16 @@
 
             <nav class="flex flex-col gap-2">
                 <a class="text-xl font-black text-red-600 px-4 py-4 bg-red-50 rounded-2xl" href="/">Beranda</a>
-                <a class="text-xl font-bold text-slate-700 px-4 py-4 hover:bg-slate-50 rounded-2xl transition-colors" href="#about" onclick="toggleMobileMenu()">Tentang Kami</a>
-                <a class="text-xl font-bold text-slate-700 px-4 py-4 hover:bg-slate-50 rounded-2xl transition-colors" href="#brands" onclick="toggleMobileMenu()">Kemitraan</a>
+                <a class="text-xl font-bold text-slate-700 px-4 py-4 hover:bg-slate-50 rounded-2xl transition-colors"
+                    href="#about" onclick="toggleMobileMenu()">Tentang Kami</a>
+                <a class="text-xl font-bold text-slate-700 px-4 py-4 hover:bg-slate-50 rounded-2xl transition-colors"
+                    href="#brands" onclick="toggleMobileMenu()">Kemitraan</a>
             </nav>
             <div class="pt-4 px-4">
                 <div id="mobile-auth-placeholder">
-                    <button onclick="openLoginModal(); toggleMobileMenu();" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-bold shadow-xl">Akses Mitra Sekarang</button>
+                    <button onclick="openLoginModal(); toggleMobileMenu();"
+                        class="w-full bg-slate-900 text-white py-5 rounded-2xl font-bold shadow-xl">Akses Mitra
+                        Sekarang</button>
                 </div>
             </div>
         </div>
@@ -157,24 +167,30 @@
             <div class="hero grid md:grid-cols-2 gap-12 lg:gap-20 items-center pt-24 sm:pt-36 pb-16 sm:pb-24 relative">
                 <!-- Decorative Blobs (Contained) -->
                 <div class="absolute inset-0 pointer-events-none overflow-hidden -z-10">
-                    <div class="absolute top-0 right-0 w-96 h-96 bg-red-50 rounded-full blur-3xl opacity-50 transform translate-x-1/2 -translate-y-1/2"></div>
+                    <div
+                        class="absolute top-0 right-0 w-96 h-96 bg-red-50 rounded-full blur-3xl opacity-50 transform translate-x-1/2 -translate-y-1/2">
+                    </div>
                 </div>
 
                 <div class="relative z-10 flex flex-col items-center text-center md:items-start md:text-left">
-                    <div class="inline-flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-full text-[10px] sm:text-xs font-bold mb-6 tracking-wide">
+                    <div
+                        class="inline-flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-full text-[10px] sm:text-xs font-bold mb-6 tracking-wide">
                         <span class="relative flex h-2 w-2">
-                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                            <span
+                                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                             <span class="relative inline-flex rounded-full h-2 w-2 bg-red-600"></span>
                         </span>
                         TRUSTED BY 120+ PARTNERS
                     </div>
-                    <h1 class="font-poppins lg:text-6xl md:text-5xl text-3xl sm:text-4xl font-semibold mb-6 leading-tight text-slate-900">
+                    <h1
+                        class="font-poppins lg:text-6xl md:text-5xl text-3xl sm:text-4xl font-semibold mb-6 leading-tight text-slate-900">
                         Selamat Datang di <br class="hidden sm:block">
                         <span class="font-bold text-red-600">Super Mitra</span><br>
-                        <span class="text-xl sm:text-2xl md:text-3xl text-slate-600 font-medium">Master Kuliner Indonesia</span>
+                        <span class="text-xl sm:text-2xl md:text-3xl text-slate-600 font-medium">Master Kuliner
+                            Indonesia</span>
                     </h1>
                     <p class="text-sm sm:text-lg leading-relaxed mb-10 text-slate-600 max-w-lg font-medium">
-                        Temukan ribuan mitra Master Kuliner Indonesia dari berbagai daerah. 
+                        Temukan ribuan mitra Master Kuliner Indonesia dari berbagai daerah.
                         Bangun kerajaan bisnis kuliner Anda dengan sistem yang teruji.
                     </p>
                     <div class="flex flex-col sm:flex-row gap-4 w-full flex-wrap justify-center md:justify-start">
@@ -206,7 +222,8 @@
 
             <!-- About Banner -->
             <section id="about" class="mt-20 sm:mt-32 scroll-mt-28">
-                <div class="relative rounded-[2.5rem] overflow-hidden shadow-2xl shadow-slate-200/50 max-w-6xl mx-auto border border-neutral-100">
+                <div
+                    class="relative rounded-[2.5rem] overflow-hidden shadow-2xl shadow-slate-200/50 max-w-6xl mx-auto border border-neutral-100">
                     <div class="grid md:grid-cols-2 min-h-[400px]">
                         <div
                             class="bg-red-600 flex flex-col justify-center px-10 py-16 md:px-16 order-2 md:order-1 relative overflow-hidden text-center md:text-left items-center md:items-start">
@@ -220,7 +237,8 @@
                             <h2
                                 class="font-poppins text-3xl md:text-4xl font-bold text-white mb-6 relative z-10 leading-[1.2]">
                                 Jadilah kebaikan yang ingin Anda wujudkan.</h2>
-                            <p class="text-red-50 text-base md:text-lg leading-relaxed mb-10 max-w-lg relative z-10 opacity-90">
+                            <p
+                                class="text-red-50 text-base md:text-lg leading-relaxed mb-10 max-w-lg relative z-10 opacity-90">
                                 Master Kuliner Indonesia bersama mitra kami menyediakan solusi berkelanjutan untuk
                                 menghubungkan pelaku kuliner dengan pelanggan sukses.</p>
                             <a href="#brands"
@@ -231,7 +249,8 @@
                         <div class="relative h-72 md:h-auto min-h-[300px] order-1 md:order-2">
                             <img alt="Mitra Master Kuliner" class="absolute inset-0 w-full h-full object-cover"
                                 src="/assets/images/jadilah-kebaikan.jpeg">
-                            <div class="absolute inset-0 bg-gradient-to-t from-red-600/20 to-transparent md:hidden"></div>
+                            <div class="absolute inset-0 bg-gradient-to-t from-red-600/20 to-transparent md:hidden">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -300,108 +319,120 @@
                 </div>
 
                 <section id="mitraSpread" class="mt-16 lg:mt-20">
-                    <div class="relative overflow-hidden rounded-[2rem] border border-red-100 bg-gradient-to-br from-red-50 via-white to-amber-50 shadow-xl shadow-red-100/40">
-                        <div class="absolute -top-24 -right-20 h-60 w-60 rounded-full bg-red-200/30 blur-3xl pointer-events-none"></div>
-                        <div class="absolute -bottom-24 -left-20 h-64 w-64 rounded-full bg-amber-200/30 blur-3xl pointer-events-none"></div>
+                    <div
+                        class="relative overflow-hidden rounded-[2rem] border border-red-100 bg-gradient-to-br from-red-50 via-white to-amber-50 shadow-xl shadow-red-100/40">
+                        <div
+                            class="absolute -top-24 -right-20 h-60 w-60 rounded-full bg-red-200/30 blur-3xl pointer-events-none">
+                        </div>
+                        <div
+                            class="absolute -bottom-24 -left-20 h-64 w-64 rounded-full bg-amber-200/30 blur-3xl pointer-events-none">
+                        </div>
 
                         <div class="relative grid gap-10 lg:grid-cols-[1.2fr_0.8fr] p-6 sm:p-8 lg:p-10">
                             <div>
                                 <div class="max-w-2xl">
-                                    <span class="inline-flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.28em] text-red-600 border border-red-100">
+                                    <span
+                                        class="inline-flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.28em] text-red-600 border border-red-100">
                                         Peta Persebaran Mitra
                                     </span>
-                                    <h3 class="mt-5 font-poppins text-2xl md:text-3xl font-bold text-slate-900 leading-tight">
+                                    <h3
+                                        class="mt-5 font-poppins text-2xl md:text-3xl font-bold text-slate-900 leading-tight">
                                         Persebaran pendaftar kemitraan MKI di berbagai wilayah Indonesia
                                     </h3>
                                     <p class="mt-4 text-sm md:text-base leading-relaxed text-slate-600 max-w-xl">
-                                        Visual ini menunjukkan konsentrasi minat kemitraan MKI dari barat hingga timur Indonesia, dengan titik pertumbuhan terbesar berada di kota-kota pusat kuliner dan perdagangan.
+                                        Visual ini menunjukkan konsentrasi minat kemitraan MKI dari barat hingga timur
+                                        Indonesia, dengan titik pertumbuhan terbesar berada di kota-kota pusat kuliner
+                                        dan perdagangan.
                                     </p>
                                 </div>
 
-                                <div class="mt-8 rounded-[1.75rem] border border-white/70 bg-white/85 p-4 sm:p-6 shadow-lg shadow-red-100/30 backdrop-blur-sm">
+                                <div
+                                    class="mt-8 rounded-[1.75rem] border border-white/70 bg-white/85 p-4 sm:p-6 shadow-lg shadow-red-100/30 backdrop-blur-sm">
                                     <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
                                         <div>
                                             <p class="text-sm font-semibold text-slate-500">Cakupan Nasional</p>
-                                            <p class="text-xl sm:text-2xl font-bold text-slate-900 font-poppins">Jejak Mitra Indonesia</p>
+                                            <p class="text-xl sm:text-2xl font-bold text-slate-900 font-poppins">Jejak
+                                                Mitra Indonesia</p>
                                         </div>
-                                        <div class="inline-flex items-center gap-2 rounded-full bg-red-600 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-red-600/20">
+                                        <div
+                                            class="inline-flex items-center gap-2 rounded-full bg-red-600 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-red-600/20">
                                             <span class="h-2.5 w-2.5 rounded-full bg-white"></span>
-                                            Update Persebaran 2026
+                                            Update Persebaran Terkini
                                         </div>
                                     </div>
 
-                                    <div id="indonesiaLeafletMap" class="mitra-map w-full" data-map-mode="leaflet" aria-label="Peta persebaran mitra MKI di Indonesia"></div>
+                                    <div id="indonesiaLeafletMap" class="mitra-map w-full" data-map-mode="leaflet"
+                                        aria-label="Peta persebaran mitra MKI di Indonesia"></div>
                                 </div>
                             </div>
 
                             <div class="space-y-4">
-                                <div class="rounded-[1.75rem] border border-slate-200 bg-white/90 p-6 shadow-lg shadow-slate-200/40">
-                                    <p class="text-sm font-semibold text-slate-500">Total Calon Mitra</p>
+                                <div
+                                    class="rounded-[1.75rem] border border-slate-200 bg-white/90 p-6 shadow-lg shadow-slate-200/40">
+                                    <p class="text-sm font-semibold text-slate-500">Total Mitra</p>
                                     <div class="mt-3 flex items-end gap-3">
-                                        <span class="font-poppins text-4xl font-bold text-slate-900">214</span>
-                                        <span class="mb-1 inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-600">+18% bulan ini</span>
+                                        <span class="font-poppins text-4xl font-bold text-slate-900"
+                                            id="mitraSpreadTotal">—</span>
+                                        <span
+                                            class="mb-1 inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-600">mitra
+                                            aktif</span>
                                     </div>
                                     <p class="mt-3 text-sm leading-relaxed text-slate-600">
-                                        Pendaftar tersebar di lebih dari 40 kota dengan dominasi wilayah Jawa, Sumatera, dan Kalimantan.
+                                        Mitra tersebar di berbagai kota dengan dominasi wilayah Jawa, Sumatera, dan
+                                        Kalimantan.
                                     </p>
                                 </div>
 
-                                <div class="rounded-[1.75rem] border border-slate-200 bg-white/90 p-6 shadow-lg shadow-slate-200/40">
+                                <div
+                                    class="rounded-[1.75rem] border border-slate-200 bg-white/90 p-6 shadow-lg shadow-slate-200/40">
                                     <div class="flex items-center justify-between gap-3">
-                                        <h4 class="font-poppins text-lg font-bold text-slate-900">Wilayah Paling Aktif</h4>
-                                        <span class="rounded-full bg-red-50 px-3 py-1 text-xs font-bold text-red-600">Top 4</span>
+                                        <h4 class="font-poppins text-lg font-bold text-slate-900">Wilayah Paling Aktif
+                                        </h4>
+                                        <span
+                                            class="rounded-full bg-red-50 px-3 py-1 text-xs font-bold text-red-600">Top
+                                            4</span>
                                     </div>
-                                    <div class="mt-5 space-y-4">
-                                        <div>
-                                            <div class="mb-2 flex items-center justify-between text-sm font-semibold text-slate-700">
-                                                <span>Jawa</span>
-                                                <span>96</span>
-                                            </div>
-                                            <div class="h-2.5 rounded-full bg-slate-100 overflow-hidden">
-                                                <div class="h-full w-[88%] rounded-full bg-red-600"></div>
-                                            </div>
+                                    <div class="mt-5 space-y-4" id="mitraTopRegionList">
+                                        <!-- Skeleton loaders while API loads -->
+                                        <div class="animate-pulse space-y-2">
+                                            <div class="h-4 bg-slate-100 rounded w-3/4"></div>
+                                            <div class="h-2.5 bg-slate-100 rounded-full"></div>
                                         </div>
-                                        <div>
-                                            <div class="mb-2 flex items-center justify-between text-sm font-semibold text-slate-700">
-                                                <span>Sumatera</span>
-                                                <span>42</span>
-                                            </div>
-                                            <div class="h-2.5 rounded-full bg-slate-100 overflow-hidden">
-                                                <div class="h-full w-[56%] rounded-full bg-rose-500"></div>
-                                            </div>
+                                        <div class="animate-pulse space-y-2">
+                                            <div class="h-4 bg-slate-100 rounded w-2/3"></div>
+                                            <div class="h-2.5 bg-slate-100 rounded-full"></div>
                                         </div>
-                                        <div>
-                                            <div class="mb-2 flex items-center justify-between text-sm font-semibold text-slate-700">
-                                                <span>Kalimantan</span>
-                                                <span>31</span>
-                                            </div>
-                                            <div class="h-2.5 rounded-full bg-slate-100 overflow-hidden">
-                                                <div class="h-full w-[42%] rounded-full bg-orange-500"></div>
-                                            </div>
+                                        <div class="animate-pulse space-y-2">
+                                            <div class="h-4 bg-slate-100 rounded w-1/2"></div>
+                                            <div class="h-2.5 bg-slate-100 rounded-full"></div>
                                         </div>
-                                        <div>
-                                            <div class="mb-2 flex items-center justify-between text-sm font-semibold text-slate-700">
-                                                <span>Sulawesi</span>
-                                                <span>27</span>
-                                            </div>
-                                            <div class="h-2.5 rounded-full bg-slate-100 overflow-hidden">
-                                                <div class="h-full w-[36%] rounded-full bg-amber-500"></div>
-                                            </div>
+                                        <div class="animate-pulse space-y-2">
+                                            <div class="h-4 bg-slate-100 rounded w-2/5"></div>
+                                            <div class="h-2.5 bg-slate-100 rounded-full"></div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div class="rounded-[1.75rem] border border-red-100 bg-slate-900 p-6 text-white shadow-xl shadow-slate-900/10">
+                                <div
+                                    class="rounded-[1.75rem] border border-red-100 bg-slate-900 p-6 text-white shadow-xl shadow-slate-900/10">
                                     <p class="text-sm font-semibold text-red-200">Insight MKI</p>
                                     <p class="mt-3 text-lg font-bold font-poppins leading-snug">
-                                        Minat kemitraan paling kuat datang dari area urban, koridor logistik utama, dan kota satelit dengan pertumbuhan UMKM kuliner tinggi.
+                                        Minat kemitraan paling kuat datang dari area urban, koridor logistik utama, dan
+                                        kota satelit dengan pertumbuhan UMKM kuliner tinggi.
                                     </p>
                                     <div class="mt-5 flex flex-wrap gap-2">
-                                        <span class="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold">Jabodetabek</span>
-                                        <span class="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold">Bandung Raya</span>
-                                        <span class="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold">Surabaya Raya</span>
-                                        <span class="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold">Medan</span>
-                                        <span class="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold">Makassar</span>
+                                        <span
+                                            class="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold">Jabodetabek</span>
+                                        <span
+                                            class="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold">Bandung
+                                            Raya</span>
+                                        <span
+                                            class="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold">Surabaya
+                                            Raya</span>
+                                        <span
+                                            class="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold">Medan</span>
+                                        <span
+                                            class="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold">Makassar</span>
                                     </div>
                                 </div>
                             </div>
@@ -426,13 +457,22 @@
                 </div>
 
                 <div id="testimonial-section-container" class="relative z-10 min-h-[300px]">
-                    <div id="testimonial-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 transition-all duration-500">
+                    <div id="testimonial-grid"
+                        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 transition-all duration-500">
                         <!-- Skeletons... -->
                         <div class="h-64 bg-slate-50 animate-pulse rounded-2xl border border-neutral-100"></div>
-                        <div class="h-64 bg-slate-50 animate-pulse rounded-2xl border border-neutral-100 hidden sm:block"></div>
-                        <div class="h-64 bg-slate-50 animate-pulse rounded-2xl border border-neutral-100 hidden lg:block"></div>
-                        <div class="h-64 bg-slate-50 animate-pulse rounded-2xl border border-neutral-100 hidden lg:block"></div>
-                        <div class="h-64 bg-slate-50 animate-pulse rounded-2xl border border-neutral-100 hidden lg:block"></div>
+                        <div
+                            class="h-64 bg-slate-50 animate-pulse rounded-2xl border border-neutral-100 hidden sm:block">
+                        </div>
+                        <div
+                            class="h-64 bg-slate-50 animate-pulse rounded-2xl border border-neutral-100 hidden lg:block">
+                        </div>
+                        <div
+                            class="h-64 bg-slate-50 animate-pulse rounded-2xl border border-neutral-100 hidden lg:block">
+                        </div>
+                        <div
+                            class="h-64 bg-slate-50 animate-pulse rounded-2xl border border-neutral-100 hidden lg:block">
+                        </div>
                     </div>
 
                     <!-- Navigation Controls -->

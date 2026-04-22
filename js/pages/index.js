@@ -5,18 +5,7 @@ let allBrands = [];
 let isBrandsExpanded = false;
 let mitraMap = null;
 
-const mitraSpreadPoints = [
-    { city: 'Medan', region: 'Sumatera Utara', coords: [3.5952, 98.6722], total: 18, growth: '+12%' },
-    { city: 'Palembang', region: 'Sumatera Selatan', coords: [-2.9761, 104.7754], total: 10, growth: '+9%' },
-    { city: 'Jakarta', region: 'DKI Jakarta', coords: [-6.2088, 106.8456], total: 44, growth: '+21%' },
-    { city: 'Bandung', region: 'Jawa Barat', coords: [-6.9175, 107.6191], total: 22, growth: '+17%' },
-    { city: 'Semarang', region: 'Jawa Tengah', coords: [-6.9667, 110.4167], total: 14, growth: '+11%' },
-    { city: 'Surabaya', region: 'Jawa Timur', coords: [-7.2575, 112.7521], total: 16, growth: '+15%' },
-    { city: 'Balikpapan', region: 'Kalimantan Timur', coords: [-1.2654, 116.8312], total: 11, growth: '+10%' },
-    { city: 'Makassar', region: 'Sulawesi Selatan', coords: [-5.1477, 119.4327], total: 12, growth: '+13%' },
-    { city: 'Ambon', region: 'Maluku', coords: [-3.6547, 128.1903], total: 6, growth: '+8%' },
-    { city: 'Jayapura', region: 'Papua', coords: [-2.5916, 140.669], total: 5, growth: '+7%' }
-];
+let clientRegionData = []; // Will be populated from API
 
 document.addEventListener('DOMContentLoaded', async () => {
     // --- 1. Authenticaton & Profile Management ---
@@ -113,7 +102,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     window.addEventListener('resize', handleBrandResize);
-    initializeMitraLeafletMap();
+
+    // --- Mitra Spread Map: fetch region data then init map ---
+    fetchClientRegionData();
 
     // --- 3. Login Modal & OTP Logic ---
     const loginModal = document.getElementById('loginModal');
@@ -537,6 +528,59 @@ window.toggleBrandsView = function () {
     }
 }
 
+async function fetchClientRegionData() {
+    try {
+        const resp = await fetch(`${window.baseUrl}/summary/client_region/${window.ownerId}`, {
+            headers: { 'Authorization': `Bearer ${window.apiToken}` }
+        });
+        const data = await resp.json();
+
+        if (data.summaryData && Array.isArray(data.summaryData)) {
+            clientRegionData = data.summaryData;
+        }
+    } catch (err) {
+        console.error('[MitraMap] Gagal memuat data region:', err);
+    } finally {
+        // Always init map (will use API data if available, else empty)
+        initializeMitraLeafletMap();
+        updateMitraSpreadStats();
+    }
+}
+
+function updateMitraSpreadStats() {
+    if (!clientRegionData.length) return;
+
+    // --- Total Calon Mitra ---
+    const total = clientRegionData.reduce((sum, r) => sum + (parseInt(r.count) || 0), 0);
+    const totalEl = document.getElementById('mitraSpreadTotal');
+    if (totalEl) totalEl.textContent = total.toLocaleString('id-ID');
+
+    // --- Top Wilayah Paling Aktif (top 4) ---
+    const sorted = [...clientRegionData].sort((a, b) => (parseInt(b.count) || 0) - (parseInt(a.count) || 0));
+    const top4 = sorted.slice(0, 4);
+    const maxCount = parseInt(top4[0]?.count) || 1;
+
+    const colors = ['bg-red-600', 'bg-rose-500', 'bg-orange-500', 'bg-amber-500'];
+    const topListEl = document.getElementById('mitraTopRegionList');
+    if (topListEl) {
+        topListEl.innerHTML = top4.map((region, i) => {
+            const count = parseInt(region.count) || 0;
+            const pct = Math.round((count / maxCount) * 100);
+            return `
+                <div>
+                    <div class="mb-2 flex items-center justify-between text-sm font-semibold text-slate-700">
+                        <span class="truncate max-w-[140px]" title="${region.region_name}">${region.region_name}</span>
+                        <span>${count.toLocaleString('id-ID')}</span>
+                    </div>
+                    <div class="h-2.5 rounded-full bg-slate-100 overflow-hidden">
+                        <div class="h-full ${colors[i] || 'bg-slate-400'} rounded-full" style="width:${pct}%"></div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+}
+
 function initializeMitraLeafletMap() {
     const mapContainer = document.getElementById('indonesiaLeafletMap');
     if (!mapContainer || typeof window.L === 'undefined' || mitraMap) return;
@@ -545,7 +589,7 @@ function initializeMitraLeafletMap() {
         zoomControl: true,
         scrollWheelZoom: false,
         minZoom: 4,
-        maxZoom: 10
+        maxZoom: 13
     });
 
     const indonesiaBounds = window.L.latLngBounds(
@@ -560,33 +604,51 @@ function initializeMitraLeafletMap() {
         attribution: '&copy; OpenStreetMap contributors'
     }).addTo(mitraMap);
 
-    const markerIcon = window.L.divIcon({
-        className: '',
-        html: '<div class="mitra-map-marker"></div>',
-        iconSize: [18, 18],
-        iconAnchor: [9, 9],
-        popupAnchor: [0, -8]
-    });
+    if (!clientRegionData.length) {
+        setTimeout(() => mitraMap.invalidateSize(), 150);
+        return;
+    }
 
-    mitraSpreadPoints.forEach(point => {
-        const marker = window.L.marker(point.coords, { icon: markerIcon }).addTo(mitraMap);
+    const maxCount = Math.max(...clientRegionData.map(r => parseInt(r.count) || 0), 1);
+
+    clientRegionData.forEach(region => {
+        const lat = parseFloat(region.lat);
+        const lng = parseFloat(region.lng);
+        const count = parseInt(region.count) || 0;
+        if (isNaN(lat) || isNaN(lng)) return;
+
+        // Scale marker size proportionally (min 14px, max 36px)
+        const size = Math.round(14 + ((count / maxCount) * 22));
+        const markerIcon = window.L.divIcon({
+            className: '',
+            html: `<div style="
+                width:${size}px;
+                height:${size}px;
+                background:rgba(220,38,38,0.85);
+                border:${size > 20 ? 3 : 2}px solid rgba(255,255,255,0.92);
+                border-radius:9999px;
+                box-shadow:0 4px 16px rgba(220,38,38,0.35);
+                display:flex;
+                align-items:center;
+                justify-content:center;
+            "></div>`,
+            iconSize: [size, size],
+            iconAnchor: [size / 2, size / 2],
+            popupAnchor: [0, -(size / 2) - 4]
+        });
+
+        const marker = window.L.marker([lat, lng], { icon: markerIcon }).addTo(mitraMap);
         marker.bindPopup(`
             <div class="min-w-[180px]">
-                <p class="text-sm font-bold text-slate-900">${point.city}</p>
-                <p class="text-xs text-slate-500 mt-1">${point.region}</p>
-                <div class="mt-3 flex items-center justify-between gap-3">
-                    <span class="inline-flex rounded-full bg-red-50 px-2.5 py-1 text-[11px] font-bold text-red-600">${point.total} pendaftar</span>
-                    <span class="text-[11px] font-bold text-emerald-600">${point.growth}</span>
+                <p class="text-sm font-bold text-slate-900">${region.region_name}</p>
+                <div class="mt-3">
+                    <span class="inline-flex rounded-full bg-red-50 px-2.5 py-1 text-[11px] font-bold text-red-600">${count.toLocaleString('id-ID')} pendaftar</span>
                 </div>
             </div>
-        `, {
-            className: 'mitra-map-popup'
-        });
+        `, { className: 'mitra-map-popup' });
     });
 
-    setTimeout(() => {
-        mitraMap.invalidateSize();
-    }, 150);
+    setTimeout(() => mitraMap.invalidateSize(), 150);
 }
 
 // Dual-load strategy for thumbnails requiring authentication
