@@ -271,8 +271,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const cats = (detail.business_categories && detail.business_categories.length) ? detail.business_categories : [];
         cats.forEach(cat => {
             const opt = document.createElement('option');
-            opt.value = cat.business_category || cat.id || cat.code || cat.business_category;
-            opt.textContent = cat.business_category || cat.name || cat.business_category;
+            // Prefer `business_category_id` when present, fall back to `id`.
+            const catId = (typeof cat.business_category_id !== 'undefined' && cat.business_category_id !== null)
+                ? cat.business_category_id
+                : ((typeof cat.id !== 'undefined' && cat.id !== null) ? cat.id : null);
+            opt.value = catId !== null ? String(catId) : (cat.business_category || cat.code || '');
+            opt.textContent = cat.business_category || cat.name || cat.business_category || '';
+            if (catId !== null) opt.dataset.catId = String(catId);
             select.appendChild(opt);
         });
 
@@ -605,23 +610,42 @@ document.addEventListener('DOMContentLoaded', () => {
         // Save button
         const btnSave = document.getElementById('btn-save-booth');
         if (btnSave) btnSave.addEventListener('click', async () => {
-            const category = document.getElementById('booth-category').value;
+            const categoryValue = document.getElementById('booth-category').value;
+            const categorySelect = document.getElementById('booth-category');
+            const selectedOption = categorySelect ? categorySelect.options[categorySelect.selectedIndex] : null;
+            const businessCategoryId = selectedOption && selectedOption.dataset && selectedOption.dataset.catId ? parseInt(selectedOption.dataset.catId, 10) : (Number.isFinite(Number(categoryValue)) ? parseInt(categoryValue, 10) : null);
+
             const name = document.getElementById('booth-name').value.trim();
             const address = document.getElementById('booth-address').value.trim();
             const vlat = parseFloat((document.getElementById('booth-lat').value || '').trim());
             const vlng = parseFloat((document.getElementById('booth-lng').value || '').trim());
+            const regionIdEl = document.getElementById('booth-region-id');
+            const regionId = regionIdEl ? (regionIdEl.value || regionIdEl.textContent || '') : '';
 
             if (!name) return profileToast('warning', 'Masukkan nama booth.');
-            if (!category) return profileToast('warning', 'Pilih kategori bisnis.');
+            if (!businessCategoryId) return profileToast('warning', 'Pilih kategori bisnis.');
             if (isNaN(vlat) || isNaN(vlng)) return profileToast('warning', 'Koordinat tidak valid. Pilih lokasi di peta.');
 
-            const payload = { business_category: category, name, address, lat: vlat, lng: vlng };
+            // Determine owner_id: prefer configured boothRegionOwnerId, fallback to user owner fields
+            const ownerId = boothRegionOwnerId || (user && (user.owner_id || user.ownerId || user.ownerid)) || '';
+
+            const payload = {
+                owner_id: Number(ownerId) || ownerId,
+                pelanggan_id: Number(customerId) || customerId,
+                business_category_id: Number(businessCategoryId),
+                region_id: regionId ? Number(regionId) : null,
+                booth_name: name,
+                booth_address: address,
+                lat: vlat,
+                lng: vlng
+            };
+
             btnSave.disabled = true;
             const orig = btnSave.innerHTML;
             btnSave.innerHTML = 'Menyimpan...';
 
             try {
-                const resp = await fetch(`${window.baseUrl}/create/booth/${customerId}`, {
+                const resp = await fetch(`${window.baseUrl}/add/client_sales_coordinate`, {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${window.apiToken}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -631,7 +655,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!resp.ok) throw new Error(data.message || `HTTP ${resp.status}`);
 
                 profileToast('success', data.message || 'Titik jualan berhasil disimpan.');
-                // Optionally refresh profile data
                 await fetchProfileData();
             } catch (err) {
                 console.error('Gagal menyimpan booth:', err);
