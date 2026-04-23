@@ -72,9 +72,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 
                 // Update Global Pelanggan Badge
                 const totalPelangganEl = document.getElementById('totalAllPelanggan');
+                const heroTrustedCountEl = document.getElementById('heroTrustedCount');
+                const heroMitraCountEl = document.getElementById('heroMitraCount');
                 const statsContainer = document.getElementById('globalStatsContainer');
                 if (totalPelangganEl && countContent.total_all_pelanggan) {
-                    totalPelangganEl.textContent = countContent.total_all_pelanggan.toLocaleString();
+                    const formattedTotalPelanggan = Number(countContent.total_all_pelanggan).toLocaleString('en-US');
+                    totalPelangganEl.textContent = formattedTotalPelanggan;
+                    if (heroTrustedCountEl) heroTrustedCountEl.textContent = `${totalPelangganEl.textContent}+`;
+                    if (heroMitraCountEl) heroMitraCountEl.textContent = `${totalPelangganEl.textContent}+`;
                     statsContainer.classList.remove('opacity-0');
                 }
 
