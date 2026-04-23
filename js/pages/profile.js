@@ -8,6 +8,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const photoInput = document.getElementById('profile-photo-input');
     const photoTrigger = document.getElementById('profile-photo-trigger');
     const photoTriggerText = document.getElementById('profile-photo-trigger-text');
+    const boothRegionBaseUrl = 'https://region.katib.cloud';
+    const boothRegionSearchToken = '0f4d99ae56bf938a9dc29d4f4dc499b919e44f4d3774cf2e5c7b9f5395d05fc6';
+    const boothRegionOwnerId = '4427';
+    const boothGeocodeBaseUrl = 'https://nominatim.openstreetmap.org/search';
+    let boothRegionSearchTimer = null;
+    let boothRegionSearchSeq = 0;
+    let boothGeocodeSeq = 0;
 
     // Make functions global for modal
     window.confirmLogout = function () {
@@ -251,9 +258,8 @@ document.addEventListener('DOMContentLoaded', () => {
             businessContainer.innerHTML = '<p class="text-slate-500 text-sm">Belum ada kategori bisnis.</p>';
         }
 
-        // --- Populate booth category select and init booth editor ---
+        // --- Populate booth category; booth map will initialize when the booth tab is opened ---
         populateBoothCategorySelect(detail);
-        setTimeout(() => initBoothEditor(detail), 50);
     }
 
     // Populate category select for booth form
@@ -276,17 +282,232 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function clearBoothRegionFields() {
+        const ids = ['booth-region-id', 'booth-kelurahan', 'booth-kecamatan', 'booth-kota', 'booth-provinsi', 'booth-kodepos'];
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+    }
+
+    function hideBoothRegionResults() {
+        const resultsEl = document.getElementById('booth-region-results');
+        if (!resultsEl) return;
+        resultsEl.classList.add('hidden');
+        resultsEl.innerHTML = '';
+    }
+
+    function setBoothGeocodeLoading(isLoading) {
+        const loadingEl = document.getElementById('booth-geocode-loading');
+        if (!loadingEl) return;
+        loadingEl.classList.toggle('hidden', !isLoading);
+    }
+
+    function applyBoothRegion(region) {
+        if (!region) return;
+
+        const mappings = {
+            'booth-region-id': region.region_id || '',
+            'booth-kelurahan': region.kelurahan || '',
+            'booth-kecamatan': region.kecamatan || '',
+            'booth-kota': region.kota || '',
+            'booth-provinsi': region.provinsi || '',
+            'booth-kodepos': region.kode_pos || ''
+        };
+
+        Object.entries(mappings).forEach(([id, value]) => {
+            const el = document.getElementById(id);
+            if (el) el.value = value;
+        });
+
+        const searchEl = document.getElementById('booth-region-search');
+        if (searchEl) searchEl.value = region.region_name || '';
+
+        // Do not automatically overwrite the booth address input when a region
+        // is applied. Keep region fields populated but leave `booth-address`
+        // to be filled manually by the user to avoid unwanted autofill.
+
+        hideBoothRegionResults();
+        geocodeAndApplyBoothRegion(region);
+    }
+
+    async function geocodeAndApplyBoothRegion(region) {
+        const currentSeq = ++boothGeocodeSeq;
+        const queryParts = [region.kelurahan, region.kecamatan, region.kota, region.provinsi, 'Indonesia']
+            .filter(Boolean);
+        if (!queryParts.length) return;
+
+        const boothLatEl = document.getElementById('booth-lat');
+        const boothLngEl = document.getElementById('booth-lng');
+        setBoothGeocodeLoading(true);
+
+        try {
+            const query = queryParts.join(', ');
+            const response = await fetch(`${boothGeocodeBaseUrl}?format=jsonv2&limit=1&countrycodes=id&q=${encodeURIComponent(query)}`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                },
+                cache: 'no-store',
+                credentials: 'omit'
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const results = await response.json();
+            if (currentSeq !== boothGeocodeSeq) return;
+            if (!Array.isArray(results) || !results.length) return;
+
+            const lat = parseFloat(results[0].lat);
+            const lng = parseFloat(results[0].lon);
+            if (isNaN(lat) || isNaN(lng)) return;
+
+            if (boothLatEl) boothLatEl.value = lat.toString();
+            if (boothLngEl) boothLngEl.value = lng.toString();
+
+            if (typeof window.setBoothMarkerFromRegion === 'function') {
+                window.setBoothMarkerFromRegion(lat, lng);
+            }
+        } catch (error) {
+            console.error('Gagal geocode wilayah booth:', error);
+        } finally {
+            if (currentSeq === boothGeocodeSeq) {
+                setBoothGeocodeLoading(false);
+            }
+        }
+    }
+
+    function renderBoothRegionResults(regions = []) {
+        const resultsEl = document.getElementById('booth-region-results');
+        if (!resultsEl) return;
+
+        if (!regions.length) {
+            resultsEl.innerHTML = '<div class="px-4 py-3 text-sm text-slate-500">Wilayah tidak ditemukan.</div>';
+            resultsEl.classList.remove('hidden');
+            return;
+        }
+
+        resultsEl.innerHTML = regions.map(region => `
+            <button type="button"
+                class="booth-region-option w-full px-4 py-3 text-left hover:bg-slate-50 transition-colors border-b border-neutral-100 last:border-b-0"
+                data-region='${JSON.stringify(region).replace(/'/g, '&apos;')}'>
+                <div class="text-sm font-semibold text-slate-900">${escapeHtml(region.region_name || '-')}</div>
+                <div class="mt-1 text-xs text-slate-500">${escapeHtml([region.kelurahan, region.kecamatan, region.kota, region.provinsi, region.kode_pos].filter(Boolean).join(' • '))}</div>
+            </button>
+        `).join('');
+        resultsEl.classList.remove('hidden');
+
+        resultsEl.querySelectorAll('.booth-region-option').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const raw = btn.getAttribute('data-region')?.replace(/&apos;/g, "'");
+                if (!raw) return;
+                try {
+                    applyBoothRegion(JSON.parse(raw));
+                } catch (error) {
+                    console.error('Failed parsing region data:', error);
+                }
+            });
+        });
+    }
+
+    async function searchBoothRegion(query) {
+        const resultsEl = document.getElementById('booth-region-results');
+        if (!resultsEl) return;
+
+        const normalizedQuery = query.trim();
+        if (normalizedQuery.length < 3) {
+            hideBoothRegionResults();
+            clearBoothRegionFields();
+            return;
+        }
+
+        const currentSeq = ++boothRegionSearchSeq;
+        resultsEl.innerHTML = '<div class="px-4 py-3 text-sm text-slate-500">Mencari wilayah...</div>';
+        resultsEl.classList.remove('hidden');
+
+        try {
+            const endpoint = `${boothRegionBaseUrl}/table/region/${boothRegionOwnerId}/1?search=${encodeURIComponent(normalizedQuery)}`;
+            const response = await fetch(endpoint, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${boothRegionSearchToken}`,
+                    'Accept': 'application/json'
+                },
+                cache: 'no-store',
+                credentials: 'omit'
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            if (currentSeq !== boothRegionSearchSeq) return;
+
+            renderBoothRegionResults(Array.isArray(data.tableData) ? data.tableData : []);
+        } catch (error) {
+            console.error('Gagal mencari wilayah booth:', error);
+            if (currentSeq !== boothRegionSearchSeq) return;
+            resultsEl.innerHTML = '<div class="px-4 py-3 text-sm text-red-500">Gagal memuat data wilayah.</div>';
+            resultsEl.classList.remove('hidden');
+        }
+    }
+
+    function initializeBoothRegionSearch() {
+        const searchEl = document.getElementById('booth-region-search');
+        if (!searchEl || searchEl.dataset.bound === 'true') return;
+
+        searchEl.dataset.bound = 'true';
+        searchEl.addEventListener('input', () => {
+            const query = searchEl.value;
+            if (boothRegionSearchTimer) clearTimeout(boothRegionSearchTimer);
+            boothRegionSearchTimer = setTimeout(() => {
+                searchBoothRegion(query);
+            }, 350);
+        });
+
+        searchEl.addEventListener('focus', () => {
+            if (searchEl.value.trim().length >= 3) {
+                searchBoothRegion(searchEl.value);
+            }
+        });
+
+        document.addEventListener('click', (event) => {
+            const wrapper = document.getElementById('booth-region-results');
+            if (!wrapper || !searchEl) return;
+            if (wrapper.contains(event.target) || searchEl.contains(event.target)) return;
+            hideBoothRegionResults();
+        });
+    }
+
     // Booth map/editor state
     let boothMap = null;
     let boothMarker = null;
 
+    function refreshBoothMapLayout() {
+        if (!boothMap) return;
+
+        // Delay a bit so the container has its final visible size before Leaflet recalculates tiles.
+        [0, 150, 300].forEach(delay => {
+            setTimeout(() => {
+                boothMap.invalidateSize();
+                if (boothMarker) {
+                    boothMap.panTo(boothMarker.getLatLng());
+                }
+            }, delay);
+        });
+    }
+
     function initBoothEditor(detail = {}) {
         const mapEl = document.getElementById('boothMap');
         if (!mapEl || typeof window.L === 'undefined') return;
+        initializeBoothRegionSearch();
 
         // If already initialized, skip
         if (boothMap) {
-            boothMap.invalidateSize();
+            refreshBoothMapLayout();
             return;
         }
 
@@ -295,10 +516,17 @@ document.addEventListener('DOMContentLoaded', () => {
         let lat = parseFloat(detail.booth_lat) || null;
         let lng = parseFloat(detail.booth_lng) || null;
 
-        boothMap = window.L.map(mapEl, { scrollWheelZoom: true }).setView(lat && lng ? [lat, lng] : defaultCenter, lat && lng ? 14 : 5);
+        // Use a maxZoom compatible with the chosen tile provider. OpenStreetMap
+        // standard tiles are served up to z=19; requesting z>19 returns 400
+        // from the tile server. If you need true detail above z=19, switch to
+        // a provider that supplies higher-zoom tiles (Mapbox, commercial tiles,
+        // or vector tiles).
+        const providerMaxZoom = 19;
+        boothMap = window.L.map(mapEl, { scrollWheelZoom: true, maxZoom: providerMaxZoom }).setView(lat && lng ? [lat, lng] : defaultCenter, lat && lng ? 14 : 5);
 
         window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
+            attribution: '&copy; OpenStreetMap contributors',
+            maxZoom: providerMaxZoom
         }).addTo(boothMap);
 
         function setMarkerAt(latv, lngv, pan = true) {
@@ -314,8 +542,13 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 boothMarker.setLatLng([latf, lngf]);
             }
-            if (pan) boothMap.panTo([latf, lngf]);
+            if (pan) boothMap.setView([latf, lngf], boothMap.getMaxZoom());
         }
+
+        window.setBoothMarkerFromRegion = (latv, lngv) => {
+            setMarkerAt(latv, lngv, true);
+            setInputsFromMarker(latv, lngv);
+        };
 
         function setInputsFromMarker(latv, lngv) {
             const latInput = document.getElementById('booth-lat');
@@ -357,8 +590,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (btnReset) btnReset.addEventListener('click', () => {
             document.getElementById('booth-name').value = '';
             document.getElementById('booth-address').value = '';
+            document.getElementById('booth-region-search').value = '';
             document.getElementById('booth-lat').value = '';
             document.getElementById('booth-lng').value = '';
+            clearBoothRegionFields();
+            hideBoothRegionResults();
             if (boothMarker) {
                 boothMap.removeLayer(boothMarker);
                 boothMarker = null;
@@ -405,7 +641,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 btnSave.innerHTML = orig;
             }
         });
+
+        refreshBoothMapLayout();
     }
+
+    window.initBoothEditor = initBoothEditor;
+    window.refreshBoothMapLayout = refreshBoothMapLayout;
 
     // --- Booth list handling ---
     async function fetchBoothList() {
@@ -508,6 +749,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('tab-list-panel').classList.add('hidden');
         document.getElementById('tab-editor').classList.add('bg-white');
         document.getElementById('tab-list').classList.remove('bg-white');
+        refreshBoothMapLayout();
     }
     function showListTab() {
         document.getElementById('tab-editor-panel').classList.add('hidden');
@@ -723,6 +965,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const el = document.getElementById(pid);
             if (el) el.classList.remove('hidden');
         });
+
+        if (idKey === 'booth') {
+            if (window.initBoothEditor) window.initBoothEditor(window.currentProfileDetail || {});
+            if (window.refreshBoothMapLayout) window.refreshBoothMapLayout();
+        }
 
         // update active styling
         if (idKey === 'contact') setActiveTab(tabContact);
