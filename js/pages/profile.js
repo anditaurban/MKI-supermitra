@@ -170,12 +170,31 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3. Formatting Helpers
     const formatDate = (dateString) => {
         if (!dateString) return '-';
-        const date = new Date(dateString);
-        return new Intl.DateTimeFormat('id-ID', {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric'
-        }).format(date);
+        try {
+            // Handle numeric timestamps (seconds or milliseconds)
+            let date;
+            if (typeof dateString === 'number' || /^\d+$/.test(String(dateString))) {
+                let n = Number(dateString);
+                // if value looks like seconds (10 digits), convert to ms
+                if (n > 0 && n < 1e12) n = n * 1000;
+                date = new Date(n);
+            } else {
+                const s = String(dateString).trim();
+                // Guard against zero-dates or obvious invalids
+                if (s === '' || s.startsWith('0000')) return '-';
+                date = new Date(s);
+            }
+
+            if (!date || isNaN(date.getTime())) return '-';
+
+            return new Intl.DateTimeFormat('id-ID', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            }).format(date);
+        } catch (err) {
+            return '-';
+        }
     };
 
     // 3. Fetch Profile Data
