@@ -32,13 +32,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Orders Logic
     let currentPage = 1;
+    let currentSearch = '';
+    let currentStartDate = '';
+    let currentEndDate = '';
+    let currentStatus = '';
 
-    function fetchOrders(page) {
+    function fetchOrders(page, q = '', startDate = '', endDate = '', status = '') {
         const customerId = user.customer_id;
         if (!customerId) {
             showEmpty();
             return;
         }
+        // normalize and store current filters
+        currentSearch = (q || '').trim();
+        currentStartDate = startDate || '';
+        currentEndDate = endDate || '';
+        currentStatus = status || '';
 
         document.getElementById('loading-state').classList.remove('hidden');
         const list = document.getElementById('orders-list');
@@ -48,7 +57,26 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('empty-state').classList.add('hidden');
         document.getElementById('pagination').classList.add('hidden');
 
-        fetch(`${baseUrl}/table/sales_webstore/${customerId}/${page}`, {
+        // build query params (include common alternates for backend compatibility)
+        const params = [];
+        if (currentSearch) params.push(`search=${encodeURIComponent(currentSearch)}`);
+        if (currentStartDate) {
+            params.push(`start_date=${encodeURIComponent(currentStartDate)}`);
+            params.push(`startDate=${encodeURIComponent(currentStartDate)}`);
+        }
+        if (currentEndDate) {
+            params.push(`end_date=${encodeURIComponent(currentEndDate)}`);
+            params.push(`endDate=${encodeURIComponent(currentEndDate)}`);
+        }
+        if (currentStatus) {
+            params.push(`status=${encodeURIComponent(currentStatus)}`);
+            params.push(`status_key=${encodeURIComponent(currentStatus)}`);
+        }
+        const qs = params.length ? `?${params.join('&')}` : '';
+
+        const url = `${baseUrl}/table/sales_webstore/${customerId}/${page}${qs}`;
+        console.debug('[ORDERS] Fetch URL:', url);
+        fetch(url, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${apiToken}`,
@@ -192,18 +220,84 @@ document.addEventListener('DOMContentLoaded', function () {
         prevBtn.onclick = () => {
             if (currentPageIndex > 1) {
                 currentPage = currentPageIndex - 1;
-                fetchOrders(currentPage);
+                fetchOrders(currentPage, currentSearch, currentStartDate, currentEndDate, currentStatus);
             }
         };
 
         nextBtn.onclick = () => {
             if (currentPageIndex < totalPages) {
                 currentPage = currentPageIndex + 1;
-                fetchOrders(currentPage);
+                fetchOrders(currentPage, currentSearch, currentStartDate, currentEndDate, currentStatus);
             }
         };
     }
 
     // Initial fetch
-    fetchOrders(currentPage);
+    // wire search input (debounced) and filters
+    const ordersSearchInput = document.getElementById('orders-search');
+    const ordersStartInput = document.getElementById('orders-start-date');
+    const ordersEndInput = document.getElementById('orders-end-date');
+    const ordersStatusSelect = document.getElementById('orders-status');
+    const ordersApplyBtn = document.getElementById('orders-apply-filters');
+
+    let ordersSearchTimer = null;
+    const applyFilters = () => {
+        currentPage = 1;
+        const q = ordersSearchInput ? ordersSearchInput.value.trim() : '';
+        const s = ordersStartInput ? ordersStartInput.value : '';
+        const e = ordersEndInput ? ordersEndInput.value : '';
+        const st = ordersStatusSelect ? ordersStatusSelect.value : '';
+        fetchOrders(1, q, s, e, st);
+    };
+
+    if (ordersSearchInput) {
+        ordersSearchInput.addEventListener('input', () => {
+            const q = ordersSearchInput.value || '';
+            if (ordersSearchTimer) clearTimeout(ordersSearchTimer);
+            ordersSearchTimer = setTimeout(() => {
+                applyFilters();
+            }, 350);
+        });
+    }
+
+    if (ordersApplyBtn) {
+        ordersApplyBtn.addEventListener('click', () => {
+            applyFilters();
+        });
+    }
+
+    // Fetch available order statuses from server and populate select
+    async function fetchOrderStatusList() {
+        if (!ordersStatusSelect) return;
+        // derive ownerId from session
+        const ownerId = (user && (user.owner_id || user.ownerId || user.ownerid)) || user.customer_id || '';
+        if (!ownerId) return;
+        try {
+            const resp = await fetch(`${baseUrl}/list/sales_status/${ownerId}`, {
+                headers: { 'Authorization': `Bearer ${apiToken}`, 'Content-Type': 'application/json' }
+            });
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            const data = await resp.json();
+            const list = Array.isArray(data.listData) ? data.listData : [];
+            // clear and populate
+            ordersStatusSelect.innerHTML = '';
+            const optAll = document.createElement('option');
+            optAll.value = '';
+            optAll.textContent = 'Semua Status';
+            ordersStatusSelect.appendChild(optAll);
+            list.forEach(item => {
+                const o = document.createElement('option');
+                o.value = String(item.status_id);
+                o.textContent = item.status || `Status ${item.status_id}`;
+                ordersStatusSelect.appendChild(o);
+            });
+        } catch (err) {
+            console.error('Gagal memuat daftar status:', err);
+        }
+    }
+
+    // load statuses then initial fetch
+    fetchOrderStatusList().finally(() => {
+        fetchOrders(currentPage, currentSearch, currentStartDate, currentEndDate, currentStatus);
+    });
 });

@@ -672,71 +672,139 @@ document.addEventListener('DOMContentLoaded', () => {
     window.refreshBoothMapLayout = refreshBoothMapLayout;
 
     // --- Booth list handling ---
-    async function fetchBoothList() {
+    // Fetch booth list from the server using the table API with pagination and optional search
+    async function fetchBoothList(page = 1, q = '') {
         const tableBody = document.querySelector('#booth-list-table tbody');
+        const paginationEl = document.getElementById('booth-list-pagination');
         if (!tableBody) return [];
-        tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-6 text-slate-400">Memuat data titik jualan...</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-6 text-slate-400">Memuat data titik outlet...</td></tr>';
+        if (paginationEl) paginationEl.innerHTML = '';
 
-        const endpoints = [
-            `${window.baseUrl}/list/booth/${customerId}`,
-            `${window.baseUrl}/booth/client/${customerId}`,
-            `${window.baseUrl}/client/${customerId}/booths`
-        ];
-
-        for (const url of endpoints) {
-            try {
-                const resp = await fetch(url, { headers: { 'Authorization': `Bearer ${window.apiToken}` } });
-                if (!resp.ok) continue;
-                const data = await resp.json();
-                const items = data && (data.items || data.data || data.booths || data) ? (data.items || data.data || data.booths || data) : [];
-                renderBoothTable(Array.isArray(items) ? items : []);
-                return items;
-            } catch (e) {
-                // try next
-            }
-        }
-
-        // Fallback to localStorage if API not available
         try {
-            const localKey = `mki_booths_${customerId}`;
-            const raw = localStorage.getItem(localKey);
-            const items = raw ? JSON.parse(raw) : [];
-            renderBoothTable(items);
+            const url = `${window.baseUrl}/table/client_sales_coordinate/${customerId}/${page}${q ? `?search=${encodeURIComponent(q)}` : ''}`;
+            const resp = await fetch(url, { headers: { 'Authorization': `Bearer ${window.apiToken}`, 'Content-Type': 'application/json' } });
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            const data = await resp.json();
+
+            const items = Array.isArray(data.tableData) ? data.tableData : (Array.isArray(data.items) ? data.items : (Array.isArray(data.data) ? data.data : []));
+
+            // Robust extraction of totalRecords from multiple possible property names
+            let totalRecords = null;
+            const totalCandidates = ['totalRecords', 'total_records', 'total', 'count', 'totalCount', 'recordsTotal'];
+            for (const key of totalCandidates) {
+                if (typeof data[key] !== 'undefined' && data[key] !== null) {
+                    totalRecords = Number(data[key]);
+                    break;
+                }
+            }
+            if (!Number.isFinite(totalRecords)) totalRecords = items.length || 0;
+
+            // Determine per-page size if available
+            let perPage = null;
+            const perPageCandidates = ['per_page', 'perPage', 'limit', 'pageSize', 'page_size', 'perPageCount'];
+            for (const key of perPageCandidates) {
+                if (typeof data[key] !== 'undefined' && data[key] !== null) {
+                    perPage = Number(data[key]);
+                    break;
+                }
+            }
+            if (!Number.isFinite(perPage) || perPage <= 0) perPage = items.length || 10;
+
+            // Robust extraction of totalPages from multiple possible property names
+            let totalPages = null;
+            const pageCandidates = ['totalPages', 'total_pages', 'last_page', 'lastPage', 'pages', 'pageCount'];
+            for (const key of pageCandidates) {
+                if (typeof data[key] !== 'undefined' && data[key] !== null) {
+                    totalPages = Number(data[key]);
+                    break;
+                }
+            }
+            if (!Number.isFinite(totalPages) || totalPages <= 0) {
+                if (Number.isFinite(totalRecords) && Number.isFinite(perPage) && perPage > 0) {
+                    totalPages = Math.max(1, Math.ceil(totalRecords / perPage));
+                } else {
+                    totalPages = 1;
+                }
+            }
+
+            renderBoothTable(items, totalPages, page, totalRecords);
             return items;
-        } catch (e) {
-            tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-6 text-slate-400">Tidak ada data titik jualan.</td></tr>';
+        } catch (err) {
+            console.error('Gagal memuat daftar titik outlet:', err);
+            // Fallback to empty state
+            tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-6 text-slate-400">Tidak ada data titik outlet.</td></tr>';
             return [];
         }
     }
 
-    function renderBoothTable(items) {
+    function renderBoothTable(items, totalPages = 1, currentPage = 1, totalRecords = 0) {
         const tableBody = document.querySelector('#booth-list-table tbody');
+        const paginationEl = document.getElementById('booth-list-pagination');
         if (!tableBody) return;
         if (!items || !items.length) {
-            tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-6 text-slate-400">Belum ada titik jualan.</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-6 text-slate-400">Belum ada titik outlet.</td></tr>';
+            if (paginationEl) paginationEl.innerHTML = '';
             return;
         }
-
+        // determine page size from totalRecords / totalPages when available
+        const pageSize = (totalPages && totalPages > 0) ? Math.max(1, Math.ceil(totalRecords / totalPages)) : items.length || 10;
         tableBody.innerHTML = items.map((b, idx) => {
-            const name = b.name || b.booth_name || b.nama || '-';
+            const name = b.booth_name || b.nama || b.name || '-';
             const cat = b.business_category || b.category || '-';
-            const addr = b.address || b.alamat || '-';
+            const addr = b.booth_address || b.address || b.alamat || '-';
+            const region = b.region_name || b.region || '-';
+            const status = b.status || b.status_text || b.status_label || '-';
             const lat = (b.lat || b.latitude || b.booth_lat) || '-';
             const lng = (b.lng || b.longitude || b.booth_lng) || '-';
+            const rowNum = (currentPage - 1) * pageSize + idx + 1;
             return `
                 <tr class="border-t">
-                    <td class="px-3 py-2 align-top">${idx + 1}</td>
+                    <td class="px-3 py-2 align-top">${rowNum}</td>
                     <td class="px-3 py-2 align-top">${escapeHtml(name)}</td>
                     <td class="px-3 py-2 align-top">${escapeHtml(cat)}</td>
                     <td class="px-3 py-2 align-top">${escapeHtml(addr)}</td>
-                    <td class="px-3 py-2 align-top">${lat}</td>
-                    <td class="px-3 py-2 align-top">${lng}</td>
-                    <td class="px-3 py-2 align-top">
-                        <button data-lat="${lat}" data-lng="${lng}" data-name="${escapeAttr(name)}" class="btn-focus-edit text-sm px-3 py-1 rounded-lg bg-slate-100">Pilih</button>
-                    </td>
+                    <td class="px-3 py-2 align-top">${escapeHtml(region)}</td>
+                    <td class="px-3 py-2 align-top">${escapeHtml(status)}</td>
                 </tr>
             `;
         }).join('');
+
+        // Render simple pagination
+        if (paginationEl) {
+            paginationEl.innerHTML = '';
+            const pages = Number.isFinite(Number(totalPages)) ? Number(totalPages) : 1;
+            if (pages >= 1) {
+                const wrap = document.createElement('div');
+                wrap.className = 'mt-3 flex items-center justify-center gap-2';
+
+                const prev = document.createElement('button');
+                prev.className = 'px-3 py-1 rounded bg-slate-100';
+                prev.textContent = 'Prev';
+                prev.disabled = currentPage <= 1;
+                prev.addEventListener('click', () => fetchBoothList(currentPage - 1, (boothListSearchInput && boothListSearchInput.value) || ''));
+                wrap.appendChild(prev);
+
+                // show up to 5 page buttons
+                const start = Math.max(1, currentPage - 2);
+                const end = Math.min(pages, start + 4);
+                for (let p = start; p <= end; p++) {
+                    const btn = document.createElement('button');
+                    btn.className = `px-3 py-1 rounded ${p === currentPage ? 'bg-red-600 text-white' : 'bg-white border border-slate-200'}`;
+                    btn.textContent = String(p);
+                    btn.addEventListener('click', () => fetchBoothList(p, (boothListSearchInput && boothListSearchInput.value) || ''));
+                    wrap.appendChild(btn);
+                }
+
+                const next = document.createElement('button');
+                next.className = 'px-3 py-1 rounded bg-slate-100';
+                next.textContent = 'Next';
+                next.disabled = currentPage >= pages;
+                next.addEventListener('click', () => fetchBoothList(currentPage + 1, (boothListSearchInput && boothListSearchInput.value) || ''));
+                wrap.appendChild(next);
+
+                paginationEl.appendChild(wrap);
+            }
+        }
 
         // wire up pilih buttons
         document.querySelectorAll('.btn-focus-edit').forEach(btn => {
@@ -759,12 +827,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function escapeHtml(s) {
+    window.escapeHtml = function (s) {
         if (!s && s !== 0) return '';
         return String(s).replace(/[&<>"']/g, function (c) { return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]); });
-    }
+    };
 
-    function escapeAttr(s) { return (s||'').replace(/"/g, '&quot;'); }
+    window.escapeAttr = function (s) { return (s||'').replace(/"/g, '&quot;'); };
 
     // Tab switching
     function showEditorTab() {
@@ -779,17 +847,29 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('tab-list-panel').classList.remove('hidden');
         document.getElementById('tab-list').classList.add('bg-white');
         document.getElementById('tab-editor').classList.remove('bg-white');
-        // load list when opening
-        fetchBoothList();
+        // load list when opening, preserve search
+        const q = (document.getElementById('booth-list-search') && document.getElementById('booth-list-search').value) || '';
+        fetchBoothList(1, q);
     }
 
-    // wire tab buttons after DOM ready
-    document.addEventListener('DOMContentLoaded', () => {
-        const tEditor = document.getElementById('tab-editor');
-        const tList = document.getElementById('tab-list');
-        if (tEditor) tEditor.addEventListener('click', showEditorTab);
-        if (tList) tList.addEventListener('click', showListTab);
-    });
+    // wire tab buttons (already inside DOMContentLoaded handler)
+    const tEditor = document.getElementById('tab-editor');
+    const tList = document.getElementById('tab-list');
+    if (tEditor) tEditor.addEventListener('click', showEditorTab);
+    if (tList) tList.addEventListener('click', showListTab);
+
+    // Booth list search handling (debounced)
+    let boothListSearchTimer = null;
+    const boothListSearchInput = document.getElementById('booth-list-search');
+    if (boothListSearchInput) {
+        boothListSearchInput.addEventListener('input', () => {
+            const q = boothListSearchInput.value || '';
+            if (boothListSearchTimer) clearTimeout(boothListSearchTimer);
+            boothListSearchTimer = setTimeout(() => {
+                fetchBoothList(1, q);
+            }, 350);
+        });
+    }
 
     // refresh list after saving a booth
     const originalSaveWrap = document.getElementById('btn-save-booth');
@@ -1015,6 +1095,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const rating = parseInt(document.getElementById('testi-rating').value) || 5;
         const photoInput = document.getElementById('testi-photo');
 
+        // resolve customerId from session/localStorage to avoid scope issues
+        const _user = JSON.parse(localStorage.getItem('mki_user') || '{}');
+        const customerId = _user.xustomer_id || _user.customer_id || _user.owner_id;
+
         if (!title || !body) return profileToast('warning', 'Lengkapi judul dan isi testimoni.');
 
         const formData = new FormData();
@@ -1070,6 +1154,9 @@ async function fetchTestimonialList() {
     const tbody = document.querySelector('#testimonial-table tbody');
     if (!tbody) return;
     tbody.innerHTML = '<tr><td colspan="5" class="text-center py-6 text-slate-400">Memuat testimoni...</td></tr>';
+    // resolve customerId from session/localStorage to avoid scope issues
+    const _user = JSON.parse(localStorage.getItem('mki_user') || '{}');
+    const customerId = _user.xustomer_id || _user.customer_id || _user.owner_id;
 
     const endpoints = [
         `${window.baseUrl}/list/testimonial/${customerId}`,

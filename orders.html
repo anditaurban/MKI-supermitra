@@ -88,6 +88,31 @@
 
             <!-- Orders Container -->
             <div class="bg-white rounded-2xl shadow-sm border border-neutral-100 overflow-hidden">
+                <div class="p-4 border-b border-neutral-100 bg-white">
+                    <div class="flex flex-col md:flex-row md:items-center gap-3">
+                        <div class="flex-1">
+                            <input id="orders-search" type="search" placeholder="Cari No. Invoice (mis. INV-0420260003)" class="w-full px-4 py-2 rounded-xl border border-neutral-200" />
+                        </div>
+
+                        <select id="orders-status" class="px-3 py-2 rounded-xl border border-neutral-200 bg-white text-sm">
+                            <option value="">Semua Status</option>
+                            <option value="menunggu_konfirmasi">Menunggu Konfirmasi</option>
+                            <option value="menunggu_pembayaran">Menunggu Pembayaran</option>
+                            <option value="sedang_diverifikasi">Sedang Diverifikasi</option>
+                            <option value="bayar_sebagian">Bayar Sebagian</option>
+                            <option value="sedang_diproses">Sedang Diproses</option>
+                            <option value="paket_terkirim">Paket Terkirim</option>
+                            <option value="batal">Batal</option>
+                        </select>
+
+                        <input id="orders-start-date" type="date" class="px-3 py-2 rounded-xl border border-neutral-200 bg-white text-sm" />
+                        <input id="orders-end-date" type="date" class="px-3 py-2 rounded-xl border border-neutral-200 bg-white text-sm" />
+
+                        <div>
+                            <button id="orders-apply-filters" class="px-4 py-2 rounded-xl bg-red-600 text-white hover:bg-red-700">Terapkan</button>
+                        </div>
+                    </div>
+                </div>
                 <!-- Loading -->
                 <div id="loading-state" class="text-center py-12">
                     <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
