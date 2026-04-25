@@ -431,14 +431,18 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        resultsEl.innerHTML = regions.map(region => `
-            <button type="button"
-                class="booth-region-option w-full px-4 py-3 text-left hover:bg-slate-50 transition-colors border-b border-neutral-100 last:border-b-0"
-                data-region='${JSON.stringify(region).replace(/'/g, '&apos;')}'>
-                <div class="text-sm font-semibold text-slate-900">${escapeHtml(region.region_name || '-')}</div>
-                <div class="mt-1 text-xs text-slate-500">${escapeHtml([region.kelurahan, region.kecamatan, region.kota, region.provinsi, region.kode_pos].filter(Boolean).join(' • '))}</div>
-            </button>
-        `).join('');
+        resultsEl.innerHTML = regions.map(region => {
+            const safe = (str) => String(str || '').replace(/'/g, "&apos;");
+            const regionTitle = region.region_name || `${region.provinsi || ''} ${region.kota || ''} ${region.kecamatan || ''} ${region.kelurahan || ''}`.trim() || '-';
+            const regionSubtitle = region.region_name ? `${region.provinsi || ''} • ${region.kota || ''} • ${region.kecamatan || ''} • ${region.kelurahan || ''}`.trim() : ([region.provinsi, region.kota, region.kecamatan, region.kelurahan].filter(Boolean).length > 0 ? '' : 'Detail wilayah tidak tersedia');
+
+            return `<button type="button" class="booth-region-option text-left w-full px-4 py-3 hover:bg-slate-50 border-b last:border-b-0" data-region='${safe(JSON.stringify(region))}'>
+                        <div class="text-sm text-slate-700 font-medium">${escapeHtml(regionTitle)}</div>
+                        ${regionSubtitle ? `<div class="text-xs text-slate-400 mt-1">${escapeHtml(regionSubtitle)}</div>` : ''}
+                    </button>`;
+        }).join('');
+
+
         resultsEl.classList.remove('hidden');
 
         resultsEl.querySelectorAll('.booth-region-option').forEach(btn => {
@@ -448,11 +452,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 try {
                     applyBoothRegion(JSON.parse(raw));
                 } catch (error) {
-                    console.error('Failed parsing region data:', error);
+                    console.error('Failed parsing booth region data:', error);
                 }
             });
         });
     }
+
 
     async function searchBoothRegion(query) {
         const resultsEl = document.getElementById('booth-region-results');
@@ -471,6 +476,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const endpoint = `${boothRegionBaseUrl}/table/region/${boothRegionOwnerId}/1?search=${encodeURIComponent(normalizedQuery)}`;
+            console.debug('[BOOTH SEARCH] fetching from:', endpoint);
             const response = await fetch(endpoint, {
                 method: 'GET',
                 headers: {
@@ -480,6 +486,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 cache: 'no-store',
                 credentials: 'omit'
             });
+
+
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -653,7 +661,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let boothMap = null;
     let boothMarker = null;
 
-    function refreshBoothMapLayout() {
+    window.refreshBoothMapLayout = function () {
         if (!boothMap) return;
 
         // Delay a bit so the container has its final visible size before Leaflet recalculates tiles.
@@ -667,7 +675,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function initBoothEditor(detail = {}) {
+    window.initBoothEditor = function (detail = {}) {
         const mapEl = document.getElementById('boothMap');
         const panelBooth = document.getElementById('panel-booth');
         console.debug('[BOOTH EDITOR] initBoothEditor called, mapEl exists:', !!mapEl, ', L defined:', typeof window.L !== 'undefined', ', panel visible:', panelBooth && !panelBooth.classList.contains('hidden'));
