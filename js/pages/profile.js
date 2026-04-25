@@ -581,7 +581,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const safe = (str) => String(str || '').replace(/'/g, "&apos;");
             const regionTitle = region.region_name || `${region.provinsi || ''} ${region.kota || ''} ${region.kecamatan || ''} ${region.kelurahan || ''}`.trim();
             const regionSubtitle = region.region_name ? `${region.provinsi || ''} • ${region.kota || ''} • ${region.kecamatan || ''} • ${region.kelurahan || ''}`.trim() : '';
-            
+
             return `<button type="button" class="profile-region-option text-left w-full px-4 py-3 hover:bg-slate-50 border-b last:border-b-0" data-region='${safe(JSON.stringify(region))}'>
                         <div class="text-sm text-slate-700 font-medium">${escapeHtml(regionTitle)}</div>
                         ${regionSubtitle ? `<div class="text-xs text-slate-400 mt-1">${escapeHtml(regionSubtitle)}</div>` : ''}
@@ -672,13 +672,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const panelBooth = document.getElementById('panel-booth');
         console.debug('[BOOTH EDITOR] initBoothEditor called, mapEl exists:', !!mapEl, ', L defined:', typeof window.L !== 'undefined', ', panel visible:', panelBooth && !panelBooth.classList.contains('hidden'));
         if (!mapEl || typeof window.L === 'undefined') return;
-        
+
         // Ensure panel is visible before initializing map (Leaflet needs dimensions)
         if (panelBooth && panelBooth.classList.contains('hidden')) {
             console.debug('[BOOTH EDITOR] panel hidden, deferring init');
             return;
         }
-        
+
         initializeBoothRegionSearch();
         initializeProfileRegionSearch();
 
@@ -1007,10 +1007,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.escapeHtml = function (s) {
         if (!s && s !== 0) return '';
-        return String(s).replace(/[&<>"']/g, function (c) { return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]); });
+        return String(s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]); });
     };
 
-    window.escapeAttr = function (s) { return (s||'').replace(/"/g, '&quot;'); };
+    window.escapeAttr = function (s) { return (s || '').replace(/"/g, '&quot;'); };
 
     // Tab switching
     function showEditorTab() {
@@ -1112,7 +1112,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function profileToast(icon, message) {
+    window.profileToast = function (icon, message) {
         Swal.fire({
             icon,
             text: message,
@@ -1123,7 +1123,8 @@ document.addEventListener('DOMContentLoaded', () => {
             timerProgressBar: true,
             customClass: { popup: 'rounded-2xl shadow-xl text-sm' }
         });
-    }
+    };
+
 
     // State Handlers
     function showContent() {
@@ -1177,7 +1178,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 provinsi: (document.getElementById('edit-provinsi') && document.getElementById('edit-provinsi').value) ? document.getElementById('edit-provinsi').value : (detail.provinsi || ''),
                 kode_pos: (document.getElementById('edit-kodepos') && document.getElementById('edit-kodepos').value) ? document.getElementById('edit-kodepos').value : (detail.kode_pos || detail.kodepos || ''),
                 // business_category_ids: extract IDs from business_categories array in detail
-                business_category_ids: Array.isArray(detail.business_categories) 
+                business_category_ids: Array.isArray(detail.business_categories)
                     ? detail.business_categories.map(c => c.business_category_id || c.id).filter(Boolean)
                     : (detail.business_category_id ? [detail.business_category_id] : [])
             };
@@ -1258,7 +1259,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         // hide all panels first
-        ['panel-contact','panel-personal','panel-business','panel-booth','panel-testimonial'].forEach(pid => {
+        ['panel-contact', 'panel-personal', 'panel-business', 'panel-booth', 'panel-testimonial'].forEach(pid => {
             const el = document.getElementById(pid);
             if (!el) return; el.classList.add('hidden');
         });
@@ -1293,123 +1294,202 @@ document.addEventListener('DOMContentLoaded', () => {
     // Testimonial handlers
     const btnSaveTesti = document.getElementById('btn-save-testimonial');
     if (btnSaveTesti) btnSaveTesti.addEventListener('click', async () => {
-        const title = document.getElementById('testi-title').value.trim();
         const body = document.getElementById('testi-body').value.trim();
         const rating = parseInt(document.getElementById('testi-rating').value) || 5;
-        const photoInput = document.getElementById('testi-photo');
 
-        // resolve customerId from session/localStorage to avoid scope issues
+        // resolve from session
         const _user = JSON.parse(localStorage.getItem('mki_user') || '{}');
         const customerId = _user.xustomer_id || _user.customer_id || _user.owner_id;
+        const customerName = _user.nama || _user.name || 'User';
 
-        if (!title || !body) return profileToast('warning', 'Lengkapi judul dan isi testimoni.');
+        if (!body) return profileToast('warning', 'Tuliskan isi testimoni Anda.');
 
-        const formData = new FormData();
-        formData.append('title', title);
-        formData.append('body', body);
-        formData.append('rating', rating);
-        if (photoInput && photoInput.files && photoInput.files[0]) formData.append('photo', photoInput.files[0]);
+        const payload = {
+            pelanggan_id: Number(customerId),
+            testimonial_name: customerName,
+            testimonial_text: body,
+            star_rating: rating
+        };
 
         btnSaveTesti.disabled = true;
         const orig = btnSaveTesti.innerHTML;
         btnSaveTesti.innerHTML = 'Mengirim...';
 
         try {
-            // Try common endpoint
-            const resp = await fetch(`${window.baseUrl}/create/testimonial/${customerId}`, {
-                method: 'POST', headers: { 'Authorization': `Bearer ${window.apiToken}` }, body: formData
+            const resp = await fetch(`${window.baseUrl}/add/testimonial`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${window.apiToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
             });
 
+            const data = await resp.json().catch(() => ({}));
+
             if (resp.ok) {
-                profileToast('success', 'Testimoni berhasil dikirim.');
-                document.getElementById('testi-title').value = '';
+                profileToast('success', data.message || 'Testimoni berhasil dikirim.');
                 document.getElementById('testi-body').value = '';
                 document.getElementById('testi-rating').value = '5';
-                if (photoInput) photoInput.value = '';
                 fetchTestimonialList();
                 return;
             }
 
-            // fallback: store in localStorage
-            throw new Error('Server tidak merespon');
+            throw new Error(data.message || 'Gagal mengirim testimoni.');
         } catch (e) {
-            // save to localStorage fallback
-            try {
-                const key = `mki_testimonials_${customerId}`;
-                const raw = localStorage.getItem(key);
-                const arr = raw ? JSON.parse(raw) : [];
-                arr.unshift({ title, body, rating, created_at: new Date().toISOString() });
-                localStorage.setItem(key, JSON.stringify(arr));
-                profileToast('success', 'Testimoni disimpan secara lokal.');
-                fetchTestimonialList();
-            } catch (err) {
-                console.error('Gagal menyimpan testimoni lokal:', err);
-                profileToast('error', 'Gagal mengirim testimoni.');
-            }
+            console.error('Testimonial error:', e);
+            profileToast('error', e.message || 'Gagal mengirim testimoni.');
         } finally {
             btnSaveTesti.disabled = false;
             btnSaveTesti.innerHTML = orig;
         }
     });
+
 });
 
 async function fetchTestimonialList() {
-    const tbody = document.querySelector('#testimonial-table tbody');
-    if (!tbody) return;
-    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-6 text-slate-400">Memuat testimoni...</td></tr>';
-    // resolve customerId from session/localStorage to avoid scope issues
+    const listContainer = document.getElementById('testimonial-list');
+    if (!listContainer) return;
+    listContainer.innerHTML = '<p class="text-slate-400 py-6 text-center sm:col-span-2">Memuat testimoni...</p>';
+
+    // resolve clientId from session/localStorage
     const _user = JSON.parse(localStorage.getItem('mki_user') || '{}');
-    const customerId = _user.xustomer_id || _user.customer_id || _user.owner_id;
+    const clientId = _user.owner_id || _user.client_id || _user.customer_id;
 
-    const endpoints = [
-        `${window.baseUrl}/list/testimonial/${customerId}`,
-        `${window.baseUrl}/testimonials/client/${customerId}`
-    ];
-
-    for (const url of endpoints) {
-        try {
-            const resp = await fetch(url, { headers: { 'Authorization': `Bearer ${window.apiToken}` } });
-            if (!resp.ok) continue;
-            const data = await resp.json();
-            const items = data && (data.items || data.data || data.testimonials || data) ? (data.items || data.data || data.testimonials || data) : [];
-            renderTestimonialTable(Array.isArray(items) ? items : []);
-            return;
-        } catch (e) {}
-    }
-
-    // fallback localStorage
-    try {
-        const key = `mki_testimonials_${customerId}`;
-        const raw = localStorage.getItem(key);
-        const items = raw ? JSON.parse(raw) : [];
-        renderTestimonialTable(items);
-    } catch (e) {
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-6 text-slate-400">Tidak ada testimoni.</td></tr>';
-    }
-}
-
-function renderTestimonialTable(items) {
-    const tbody = document.querySelector('#testimonial-table tbody');
-    if (!tbody) return;
-    if (!items || !items.length) {
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-6 text-slate-400">Belum ada testimoni.</td></tr>';
+    if (!clientId) {
+        listContainer.innerHTML = '<p class="text-slate-400 py-6 text-center sm:col-span-2">Client ID tidak ditemukan.</p>';
         return;
     }
 
-    tbody.innerHTML = items.map((t, idx) => {
-        const title = t.title || t.judul || '-';
-        const body = t.body || t.isi || '-';
-        const rating = t.rating || '-';
-        const photo = t.photo_url || t.photo || null;
-        const photoCell = photo ? `<a href="${photo}" target="_blank" class="text-red-600">Lihat</a>` : '-';
+    try {
+        const resp = await fetch(`${window.baseUrl}/list/client_testimonial/${clientId}`, {
+            headers: { 'Authorization': `Bearer ${window.apiToken}` }
+        });
+        if (!resp.ok) throw new Error('Gagal memuat testimoni');
+
+        const data = await resp.json();
+        const items = data && data.listData ? data.listData : [];
+        renderTestimonials(items);
+    } catch (e) {
+        console.error('Fetch testimonials error:', e);
+        listContainer.innerHTML = '<p class="text-slate-400 py-6 text-center sm:col-span-2">Gagal memuat testimoni dari server.</p>';
+    }
+}
+
+function renderTestimonials(items) {
+    const listContainer = document.getElementById('testimonial-list');
+    if (!listContainer) return;
+
+    if (!items || !items.length) {
+        listContainer.innerHTML = '<p class="text-slate-400 py-6 text-center sm:col-span-2">Belum ada testimoni.</p>';
+        return;
+    }
+
+    const renderStars = (rating) => {
+        const r = parseInt(rating) || 0;
+        let html = '';
+        for (let i = 1; i <= 5; i++) {
+            if (i <= r) html += '<i class="ri-star-fill text-yellow-400"></i>';
+            else html += '<i class="ri-star-line text-slate-300"></i>';
+        }
+        return html;
+    };
+
+    listContainer.innerHTML = items.map(t => {
+        const name = t.testimonial_name || 'Anonim';
+        const text = t.testimonial_text || t.body || '-';
+        const rating = t.star_rating || t.rating || 0;
+        const id = t.id || t.testimonial_id;
+
         return `
-            <tr class="border-t">
-                <td class="px-3 py-2 align-top">${idx + 1}</td>
-                <td class="px-3 py-2 align-top">${escapeHtml(title)}</td>
-                <td class="px-3 py-2 align-top">${escapeHtml(body)}</td>
-                <td class="px-3 py-2 align-top">${rating}</td>
-                <td class="px-3 py-2 align-top">${photoCell}</td>
-            </tr>
+            <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex flex-col gap-3 relative group">
+                <button onclick="window.deleteTestimonial(${id})" 
+                    class="absolute top-3 right-3 text-slate-300 hover:text-red-600 transition-colors p-1"
+                    title="Hapus Testimoni">
+                    <i class="ri-delete-bin-line text-lg"></i>
+                </button>
+                <div class="flex justify-between items-start">
+                    <div class="flex flex-col">
+                        <span class="font-bold text-slate-900 text-sm">${escapeHtml(name)}</span>
+                        <div class="flex gap-0.5 mt-1">
+                            ${renderStars(rating)}
+                        </div>
+                    </div>
+                </div>
+                <p class="text-slate-600 text-sm leading-relaxed pr-6">${escapeHtml(text)}</p>
+            </div>
         `;
     }).join('');
 }
+
+let testimonialIdToDelete = null;
+
+window.deleteTestimonial = function (id) {
+    if (!id) return;
+    testimonialIdToDelete = id;
+
+    const modal = document.getElementById('delete-confirm-modal');
+    const content = modal.querySelector('.inline-block');
+
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        modal.classList.add('opacity-100');
+        content.classList.remove('scale-95', 'opacity-0');
+        content.classList.add('scale-100', 'opacity-100');
+    }, 10);
+};
+
+const closeDeleteModal = () => {
+    const modal = document.getElementById('delete-confirm-modal');
+    const content = modal.querySelector('.inline-block');
+
+    modal.classList.remove('opacity-100');
+    content.classList.add('scale-95', 'opacity-0');
+    content.classList.remove('scale-100', 'opacity-100');
+
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        testimonialIdToDelete = null;
+    }, 300);
+};
+
+// Bind modal buttons once
+document.addEventListener('DOMContentLoaded', () => {
+    const btnCancel = document.getElementById('btn-cancel-delete');
+    const btnConfirm = document.getElementById('btn-confirm-delete');
+
+    if (btnCancel) btnCancel.addEventListener('click', closeDeleteModal);
+    if (btnConfirm) btnConfirm.addEventListener('click', async () => {
+        if (!testimonialIdToDelete) return;
+
+        const orig = btnConfirm.innerHTML;
+        btnConfirm.disabled = true;
+        btnConfirm.innerHTML = 'Menghapus...';
+
+        try {
+            const resp = await fetch(`${window.baseUrl}/delete/client_testimonial/${testimonialIdToDelete}`, {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${window.apiToken}` }
+            });
+
+            if (resp.ok) {
+                profileToast('success', 'Testimoni berhasil dihapus.');
+                closeDeleteModal();
+                if (window.fetchTestimonialList) window.fetchTestimonialList();
+            } else {
+                const data = await resp.json().catch(() => ({}));
+                throw new Error(data.message || 'Gagal menghapus testimoni.');
+            }
+        } catch (e) {
+            console.error('Delete error:', e);
+            profileToast('error', e.message || 'Terjadi kesalahan saat menghapus.');
+        } finally {
+            btnConfirm.disabled = false;
+            btnConfirm.innerHTML = orig;
+        }
+    });
+});
+
+
+
+

@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             // 2. Handle brandsGrid (from business_category_count)
             if (countData.listData) {
                 const countContent = countData.listData;
-                
+
                 // Update Global Pelanggan Badge
                 const totalPelangganEl = document.getElementById('totalAllPelanggan');
                 const heroTrustedCountEl = document.getElementById('heroTrustedCount');
@@ -296,13 +296,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function fetchTestimonials() {
         if (!testimonialNextBtn) return;
         testimonialNextBtn.disabled = true;
-        
+
         try {
             const resp = await fetch(`${window.baseUrl}/list/testimonial/${window.ownerId}`, {
                 headers: { 'Authorization': `Bearer ${window.apiToken}` }
             });
             const data = await resp.json();
-            
+
             if (data.listData && data.listData.length > 0) {
                 // Keep the pool manageable, but append new random samples
                 testimonialPool = [...testimonialPool, ...data.listData];
@@ -331,7 +331,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         testimonialGrid.style.opacity = '0';
-        
+
         setTimeout(() => {
             testimonialGrid.innerHTML = items.map(t => {
                 const rating = parseInt(t.star_rating) || 5;
@@ -359,7 +359,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </div>
                 `;
             }).join('');
-            
+
             testimonialGrid.style.opacity = '1';
             if (testimonialPageEl) testimonialPageEl.textContent = currentTestimonialPage + 1;
             if (testimonialPrevBtn) testimonialPrevBtn.disabled = currentTestimonialPage === 0;
@@ -370,7 +370,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         testimonialNextBtn.addEventListener('click', async () => {
             currentTestimonialPage++;
             const startOfNext = currentTestimonialPage * itemsPerPage;
-            
+
             if (startOfNext >= testimonialPool.length) {
                 await fetchTestimonials();
             } else {
