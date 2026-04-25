@@ -16,22 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let boothRegionSearchSeq = 0;
     let boothGeocodeSeq = 0;
 
-    // Make functions global for modal
-    window.confirmLogout = function () {
-        localStorage.removeItem('mki_user');
-        window.location.href = '/';
-    };
-
-    window.closeLogoutModal = function () {
-        const modal = document.getElementById('logout-modal');
-        if (modal) {
-            modal.classList.remove('opacity-100');
-            modal.classList.add('opacity-0');
-            setTimeout(() => {
-                modal.classList.add('hidden');
-            }, 300);
-        }
-    };
+    // Note: logout modal/handlers are provided globally by `components.js`.
 
     window.openEditProfileModal = function () {
         const modal = document.getElementById('edit-profile-modal');
@@ -42,6 +27,38 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('edit-email').value = d.email || '';
             document.getElementById('edit-alamat').value = d.alamat || '';
             document.getElementById('edit-nik').value = d.nik || '';
+            // Populate additional fields
+            try {
+                const membership = document.getElementById('edit-membership');
+                const website = document.getElementById('edit-website');
+                const npwp = document.getElementById('edit-npwp');
+                if (membership) membership.value = d.no_membership || '';
+                if (website) website.value = d.website || '';
+                if (npwp) npwp.value = d.no_npwp || '';
+            } catch (e) {
+                console.debug('Error populating extra fields');
+            }
+
+            // Populate region-related fields if present
+            try {
+                const rid = document.getElementById('edit-region-id');
+                const rname = document.getElementById('edit-region');
+                const kel = document.getElementById('edit-kelurahan');
+                const kec = document.getElementById('edit-kecamatan');
+                const kot = document.getElementById('edit-kota');
+                const prov = document.getElementById('edit-provinsi');
+                const kode = document.getElementById('edit-kodepos');
+                if (rid) rid.value = d.region_id || '';
+                if (rname) rname.value = d.region_name || d.region || '';
+                if (kel) kel.value = d.kelurahan || '';
+                if (kec) kec.value = d.kecamatan || '';
+                if (kot) kot.value = d.kota || '';
+                if (prov) prov.value = d.provinsi || '';
+                if (kode) kode.value = d.kode_pos || d.kodepos || '';
+            } catch (e) {
+                console.debug('No region fields in edit modal yet');
+            }
+
             if (d.birth) {
                 try {
                     const dateObj = new Date(d.birth);
@@ -54,6 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('edit-birth').value = '';
             }
 
+            initializeProfileRegionSearch();
             modal.classList.remove('hidden');
             setTimeout(() => {
                 modal.classList.remove('opacity-0');
@@ -506,6 +524,131 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- Profile modal region search (similar to booth region search) ---
+    async function searchProfileRegion(query) {
+        const resultsEl = document.getElementById('edit-region-results');
+        if (!resultsEl) return;
+
+        const normalizedQuery = query.trim();
+        if (normalizedQuery.length < 3) {
+            hideProfileRegionResults();
+            return;
+        }
+
+        resultsEl.innerHTML = '<div class="px-4 py-3 text-sm text-slate-500">Mencari wilayah...</div>';
+        resultsEl.classList.remove('hidden');
+
+        try {
+            const endpoint = `${boothRegionBaseUrl}/table/region/${boothRegionOwnerId}/1?search=${encodeURIComponent(normalizedQuery)}`;
+            const response = await fetch(endpoint, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${boothRegionSearchToken}`,
+                    'Accept': 'application/json'
+                },
+                cache: 'no-store',
+                credentials: 'omit'
+            });
+
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const data = await response.json();
+            renderProfileRegionResults(Array.isArray(data.tableData) ? data.tableData : []);
+        } catch (err) {
+            console.error('Gagal mencari wilayah (profile):', err);
+            resultsEl.innerHTML = '<div class="px-4 py-3 text-sm text-red-500">Gagal memuat data wilayah.</div>';
+            resultsEl.classList.remove('hidden');
+        }
+    }
+
+    function hideProfileRegionResults() {
+        const resultsEl = document.getElementById('edit-region-results');
+        if (!resultsEl) return;
+        resultsEl.classList.add('hidden');
+        resultsEl.innerHTML = '';
+    }
+
+    function renderProfileRegionResults(regions = []) {
+        const resultsEl = document.getElementById('edit-region-results');
+        if (!resultsEl) return;
+
+        if (!regions.length) {
+            resultsEl.innerHTML = '<div class="px-4 py-3 text-sm text-slate-500">Wilayah tidak ditemukan.</div>';
+            resultsEl.classList.remove('hidden');
+            return;
+        }
+
+        resultsEl.innerHTML = regions.map(region => {
+            const safe = (str) => String(str || '').replace(/'/g, "&apos;");
+            const regionTitle = region.region_name || `${region.provinsi || ''} ${region.kota || ''} ${region.kecamatan || ''} ${region.kelurahan || ''}`.trim();
+            const regionSubtitle = region.region_name ? `${region.provinsi || ''} • ${region.kota || ''} • ${region.kecamatan || ''} • ${region.kelurahan || ''}`.trim() : '';
+            
+            return `<button type="button" class="profile-region-option text-left w-full px-4 py-3 hover:bg-slate-50 border-b last:border-b-0" data-region='${safe(JSON.stringify(region))}'>
+                        <div class="text-sm text-slate-700 font-medium">${escapeHtml(regionTitle)}</div>
+                        ${regionSubtitle ? `<div class="text-xs text-slate-400 mt-1">${escapeHtml(regionSubtitle)}</div>` : ''}
+                    </button>`;
+        }).join('');
+
+        resultsEl.classList.remove('hidden');
+
+        resultsEl.querySelectorAll('.profile-region-option').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const raw = btn.getAttribute('data-region')?.replace(/&apos;/g, "'");
+                if (!raw) return;
+                try {
+                    applyProfileRegion(JSON.parse(raw));
+                } catch (error) {
+                    console.error('Failed parsing profile region data:', error);
+                }
+            });
+        });
+    }
+
+    function applyProfileRegion(region) {
+        if (!region) return;
+        const mappings = {
+            'edit-region-id': region.region_id || '',
+            'edit-kelurahan': region.kelurahan || '',
+            'edit-kecamatan': region.kecamatan || '',
+            'edit-kota': region.kota || '',
+            'edit-provinsi': region.provinsi || '',
+            'edit-kodepos': region.kode_pos || ''
+        };
+
+        Object.entries(mappings).forEach(([id, value]) => {
+            const el = document.getElementById(id);
+            if (el) el.value = value;
+        });
+
+        const searchEl = document.getElementById('edit-region');
+        if (searchEl) searchEl.value = region.region_name || '';
+
+        hideProfileRegionResults();
+    }
+
+    function initializeProfileRegionSearch() {
+        const searchEl = document.getElementById('edit-region');
+        if (!searchEl || searchEl.dataset.bound === 'true') return;
+        searchEl.dataset.bound = 'true';
+
+        let timer = null;
+        searchEl.addEventListener('input', () => {
+            const q = searchEl.value || '';
+            if (timer) clearTimeout(timer);
+            timer = setTimeout(() => searchProfileRegion(q), 350);
+        });
+
+        searchEl.addEventListener('focus', () => {
+            if (searchEl.value.trim().length >= 3) searchProfileRegion(searchEl.value);
+        });
+
+        document.addEventListener('click', (event) => {
+            const wrapper = document.getElementById('edit-region-results');
+            if (!wrapper || !searchEl) return;
+            if (wrapper.contains(event.target) || searchEl.contains(event.target)) return;
+            hideProfileRegionResults();
+        });
+    }
+
     // Booth map/editor state
     let boothMap = null;
     let boothMarker = null;
@@ -526,8 +669,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function initBoothEditor(detail = {}) {
         const mapEl = document.getElementById('boothMap');
+        const panelBooth = document.getElementById('panel-booth');
+        console.debug('[BOOTH EDITOR] initBoothEditor called, mapEl exists:', !!mapEl, ', L defined:', typeof window.L !== 'undefined', ', panel visible:', panelBooth && !panelBooth.classList.contains('hidden'));
         if (!mapEl || typeof window.L === 'undefined') return;
+        
+        // Ensure panel is visible before initializing map (Leaflet needs dimensions)
+        if (panelBooth && panelBooth.classList.contains('hidden')) {
+            console.debug('[BOOTH EDITOR] panel hidden, deferring init');
+            return;
+        }
+        
         initializeBoothRegionSearch();
+        initializeProfileRegionSearch();
 
         // If already initialized, skip
         if (boothMap) {
@@ -558,9 +711,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const latf = parseFloat(latv);
             const lngf = parseFloat(lngv);
             if (!boothMarker) {
+                console.debug('[BOOTH MAP] creating marker at', latf, lngf);
                 boothMarker = window.L.marker([latf, lngf], { draggable: true }).addTo(boothMap);
-                boothMarker.on('moveend', (e) => {
+                boothMarker.on('dragend', (e) => {
                     const p = e.target.getLatLng();
+                    console.debug('[BOOTH MAP] marker dragged to', p.lat, p.lng);
                     setInputsFromMarker(p.lat, p.lng);
                 });
             } else {
@@ -577,8 +732,11 @@ document.addEventListener('DOMContentLoaded', () => {
         function setInputsFromMarker(latv, lngv) {
             const latInput = document.getElementById('booth-lat');
             const lngInput = document.getElementById('booth-lng');
-            if (latInput) latInput.value = (Math.round((latv + Number.EPSILON) * 1000000) / 1000000).toString();
-            if (lngInput) lngInput.value = (Math.round((lngv + Number.EPSILON) * 1000000) / 1000000).toString();
+            const lv = (Math.round((latv + Number.EPSILON) * 1000000) / 1000000).toString();
+            const lgv = (Math.round((lngv + Number.EPSILON) * 1000000) / 1000000).toString();
+            console.debug('[BOOTH MAP] setInputsFromMarker', lv, lgv);
+            if (latInput) latInput.value = lv;
+            if (lngInput) lngInput.value = lgv;
         }
 
         // If profile already has booth coords, place marker
@@ -590,6 +748,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Click on map to move marker
         boothMap.on('click', function (e) {
             const p = e.latlng;
+            console.debug('[BOOTH MAP] map clicked at', p.lat, p.lng);
             setMarkerAt(p.lat, p.lng, false);
             setInputsFromMarker(p.lat, p.lng);
         });
@@ -994,13 +1153,33 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnSaveProfile = document.getElementById('btn-save-profile');
     if (btnSaveProfile) {
         btnSaveProfile.addEventListener('click', async () => {
+            // Build full payload by merging editable fields with current profile detail
+            const detail = window.currentProfileDetail || {};
             const payload = {
-                nama: document.getElementById('edit-nama').value,
-                whatsapp: document.getElementById('edit-whatsapp').value,
-                email: document.getElementById('edit-email').value,
-                alamat: document.getElementById('edit-alamat').value,
-                nik: document.getElementById('edit-nik').value,
-                birth: document.getElementById('edit-birth').value
+                owner_id: window.ownerId || detail.owner_id || (user && user.owner_id) || null,
+                region_id: (document.getElementById('edit-region-id') && document.getElementById('edit-region-id').value) ? parseInt(document.getElementById('edit-region-id').value) : (detail.region_id || null),
+                religion_id: detail.religion_id || null,
+                join_date: detail.join_date || null,
+                nama: document.getElementById('edit-nama').value || detail.nama || '',
+                alias: detail.alias || '',
+                birth: document.getElementById('edit-birth').value || detail.birth || null,
+                whatsapp: document.getElementById('edit-whatsapp').value || detail.whatsapp || '',
+                email: document.getElementById('edit-email').value || detail.email || '',
+                no_membership: document.getElementById('edit-membership').value || detail.no_membership || '',
+                website: document.getElementById('edit-website').value || detail.website || '',
+                nik: document.getElementById('edit-nik').value || detail.nik || '',
+                no_npwp: document.getElementById('edit-npwp').value || detail.no_npwp || '',
+                no_npwp_old: detail.no_npwp || '', // Keep for reference if needed
+                alamat: document.getElementById('edit-alamat').value || detail.alamat || '',
+                kelurahan: (document.getElementById('edit-kelurahan') && document.getElementById('edit-kelurahan').value) ? document.getElementById('edit-kelurahan').value : (detail.kelurahan || ''),
+                kecamatan: (document.getElementById('edit-kecamatan') && document.getElementById('edit-kecamatan').value) ? document.getElementById('edit-kecamatan').value : (detail.kecamatan || ''),
+                kota: (document.getElementById('edit-kota') && document.getElementById('edit-kota').value) ? document.getElementById('edit-kota').value : (detail.kota || ''),
+                provinsi: (document.getElementById('edit-provinsi') && document.getElementById('edit-provinsi').value) ? document.getElementById('edit-provinsi').value : (detail.provinsi || ''),
+                kode_pos: (document.getElementById('edit-kodepos') && document.getElementById('edit-kodepos').value) ? document.getElementById('edit-kodepos').value : (detail.kode_pos || detail.kodepos || ''),
+                // business_category_ids: extract IDs from business_categories array in detail
+                business_category_ids: Array.isArray(detail.business_categories) 
+                    ? detail.business_categories.map(c => c.business_category_id || c.id).filter(Boolean)
+                    : (detail.business_category_id ? [detail.business_category_id] : [])
             };
 
             const originalText = btnSaveProfile.innerHTML;
@@ -1008,7 +1187,8 @@ document.addEventListener('DOMContentLoaded', () => {
             btnSaveProfile.innerHTML = '<span class="flex items-center gap-2"><svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Menyimpan...</span>';
 
             try {
-                const response = await fetch(`${window.baseUrl}/update/client_profile/${customerId}`, {
+                // Use the client's update endpoint
+                const response = await fetch(`${window.baseUrl}/update/client/${customerId}`, {
                     method: 'PUT',
                     headers: {
                         'Authorization': `Bearer ${window.apiToken}`,
@@ -1046,6 +1226,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Init Request
+    initializeProfileRegionSearch();
     fetchProfileData();
 });
 
@@ -1089,8 +1270,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (idKey === 'booth') {
-            if (window.initBoothEditor) window.initBoothEditor(window.currentProfileDetail || {});
-            if (window.refreshBoothMapLayout) window.refreshBoothMapLayout();
+            // Delay slightly to allow panel to become visible and acquire dimensions
+            setTimeout(() => {
+                if (window.initBoothEditor) window.initBoothEditor(window.currentProfileDetail || {});
+                if (window.refreshBoothMapLayout) window.refreshBoothMapLayout();
+            }, 100);
         }
 
         // update active styling

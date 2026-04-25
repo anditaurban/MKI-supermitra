@@ -24,7 +24,11 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
     <style>
         /* Map container size for booth editor */
-        .booth-map { height: 320px; width: 100%; border-radius: 12px; }
+        .booth-map {
+            height: 320px;
+            width: 100%;
+            border-radius: 12px;
+        }
     </style>
 </head>
 
@@ -110,7 +114,8 @@
                             </div>
 
                             <div class="w-full max-w-[220px] mb-4">
-                                <input id="profile-photo-input" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" class="hidden">
+                                <input id="profile-photo-input" type="file"
+                                    accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" class="hidden">
                                 <button id="profile-photo-trigger" type="button"
                                     class="w-full inline-flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-bold px-4 py-3 rounded-2xl shadow-sm transition-all">
                                     <i class="ri-camera-line text-lg"></i>
@@ -124,6 +129,14 @@
                             <h2 id="profile-name" class="text-2xl font-bold font-poppins text-slate-900 leading-tight">
                             </h2>
                             <p id="profile-alias" class="text-slate-500 font-medium mt-1"></p>
+
+                            <div class="mt-4 w-full">
+                                <button id="btn-open-edit-profile" type="button" onclick="window.openEditProfileModal()"
+                                    class="w-full inline-flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border border-neutral-200 font-semibold px-4 py-2 rounded-2xl transition-all">
+                                    <i class="ri-edit-2-line"></i>
+                                    Edit Profil
+                                </button>
+                            </div>
 
                             <div class="mt-6 w-full pt-6 border-t border-slate-100">
                                 <div class="flex flex-col gap-2">
@@ -152,9 +165,15 @@
                         <!-- Top Tabs for Right Column -->
                         <div class="bg-white rounded-3xl p-3 shadow-sm border border-neutral-100">
                             <div class="flex items-center gap-3">
-                                <button id="tab-contact" class="px-4 py-2 rounded-xl bg-red-600 text-white font-semibold">Informasi Kontak</button>
-                                <button id="tab-booth" class="px-4 py-2 rounded-xl bg-slate-50 text-slate-700 font-semibold">Titik Outlet</button>
-                                <button id="tab-testimonial" class="px-4 py-2 rounded-xl bg-slate-50 text-slate-700 font-semibold">Pengisian Testimoni</button>
+                                <button id="tab-contact"
+                                    class="px-4 py-2 rounded-xl bg-red-600 text-white font-semibold">Informasi
+                                    Kontak</button>
+                                <button id="tab-booth"
+                                    class="px-4 py-2 rounded-xl bg-slate-50 text-slate-700 font-semibold">Titik
+                                    Outlet</button>
+                                <button id="tab-testimonial"
+                                    class="px-4 py-2 rounded-xl bg-slate-50 text-slate-700 font-semibold">Pengisian
+                                    Testimoni</button>
                             </div>
                         </div>
 
@@ -247,121 +266,173 @@
                         </div>
 
                         <!-- Booth Location Card -->
-                        <div id="panel-booth" class="bg-white rounded-3xl p-6 shadow-sm border border-neutral-100 hidden">
-                                <h3 class="text-lg font-bold font-poppins text-slate-900 border-b border-slate-100 pb-4 mb-4 flex items-center justify-between">
-                                    <div class="flex items-center">
-                                        <i class="ri-map-pin-2-line text-red-600 mr-2 text-xl"></i> Data Titik Outlet (Booth)
-                                    </div>
-                                    <div class="inline-flex bg-slate-50 rounded-xl p-1">
-                                        <button id="tab-editor" class="px-4 py-2 rounded-xl text-sm font-semibold bg-white">Pengisian Data</button>
-                                        <button id="tab-list" class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100">Lokasi Saya</button>
-                                    </div>
-                                </h3>
+                        <div id="panel-booth"
+                            class="bg-white rounded-3xl p-6 shadow-sm border border-neutral-100 hidden">
+                            <h3
+                                class="text-lg font-bold font-poppins text-slate-900 border-b border-slate-100 pb-4 mb-4 flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <i class="ri-map-pin-2-line text-red-600 mr-2 text-xl"></i> Data Titik Outlet
+                                    (Booth)
+                                </div>
+                                <div class="inline-flex bg-slate-50 rounded-xl p-1">
+                                    <button id="tab-editor"
+                                        class="px-4 py-2 rounded-xl text-sm font-semibold bg-white">Pengisian
+                                        Data</button>
+                                    <button id="tab-list"
+                                        class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100">Lokasi
+                                        Saya</button>
+                                </div>
+                            </h3>
 
-                                <div id="tab-editor-panel" class="space-y-4">
+                            <div id="tab-editor-panel" class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Kategori
+                                        Bisnis</label>
+                                    <select id="booth-category"
+                                        class="w-full px-4 py-2.5 rounded-xl border border-neutral-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none">
+                                        <option value="">Pilih kategori</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Nama Booth</label>
+                                    <input id="booth-name" type="text"
+                                        class="w-full px-4 py-2.5 rounded-xl border border-neutral-200"
+                                        placeholder="Contoh: Booth Nasi Goreng Pak Budi">
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Alamat
+                                        Booth</label>
+                                    <textarea id="booth-address" rows="2"
+                                        class="w-full px-4 py-2.5 rounded-xl border border-neutral-200 resize-none"
+                                        placeholder="Alamat lengkap booth"></textarea>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Cari
+                                        Wilayah</label>
+                                    <div class="relative">
+                                        <input id="booth-region-search" type="text"
+                                            class="w-full px-4 py-2.5 rounded-xl border border-neutral-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none"
+                                            placeholder="Cari kota, kecamatan, kelurahan, provinsi, atau kode pos">
+                                        <div id="booth-region-results"
+                                            class="hidden absolute z-20 mt-2 w-full overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-xl">
+                                        </div>
+                                    </div>
+                                    <input id="booth-region-id" type="hidden">
+                                    <p class="text-xs text-slate-500 mt-2">Contoh pencarian: Rawalumbu, Bekasi, Jawa
+                                        Barat, atau 17116.</p>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <div>
-                                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Kategori Bisnis</label>
-                                        <select id="booth-category" class="w-full px-4 py-2.5 rounded-xl border border-neutral-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none">
-                                            <option value="">Pilih kategori</option>
-                                        </select>
+                                        <label
+                                            class="block text-sm font-semibold text-slate-700 mb-1.5">Kelurahan</label>
+                                        <input id="booth-kelurahan" type="text"
+                                            class="w-full px-4 py-2.5 rounded-xl border border-neutral-200 bg-slate-50 text-slate-600"
+                                            readonly>
                                     </div>
-
                                     <div>
-                                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Nama Booth</label>
-                                        <input id="booth-name" type="text" class="w-full px-4 py-2.5 rounded-xl border border-neutral-200" placeholder="Contoh: Booth Nasi Goreng Pak Budi">
+                                        <label
+                                            class="block text-sm font-semibold text-slate-700 mb-1.5">Kecamatan</label>
+                                        <input id="booth-kecamatan" type="text"
+                                            class="w-full px-4 py-2.5 rounded-xl border border-neutral-200 bg-slate-50 text-slate-600"
+                                            readonly>
                                     </div>
-
                                     <div>
-                                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Alamat Booth</label>
-                                        <textarea id="booth-address" rows="2" class="w-full px-4 py-2.5 rounded-xl border border-neutral-200 resize-none" placeholder="Alamat lengkap booth"></textarea>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Kota</label>
+                                        <input id="booth-kota" type="text"
+                                            class="w-full px-4 py-2.5 rounded-xl border border-neutral-200 bg-slate-50 text-slate-600"
+                                            readonly>
                                     </div>
-
                                     <div>
-                                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Cari Wilayah</label>
-                                        <div class="relative">
-                                            <input id="booth-region-search" type="text" class="w-full px-4 py-2.5 rounded-xl border border-neutral-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none" placeholder="Cari kota, kecamatan, kelurahan, provinsi, atau kode pos">
-                                            <div id="booth-region-results" class="hidden absolute z-20 mt-2 w-full overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-xl"></div>
-                                        </div>
-                                        <input id="booth-region-id" type="hidden">
-                                        <p class="text-xs text-slate-500 mt-2">Contoh pencarian: Rawalumbu, Bekasi, Jawa Barat, atau 17116.</p>
+                                        <label
+                                            class="block text-sm font-semibold text-slate-700 mb-1.5">Provinsi</label>
+                                        <input id="booth-provinsi" type="text"
+                                            class="w-full px-4 py-2.5 rounded-xl border border-neutral-200 bg-slate-50 text-slate-600"
+                                            readonly>
                                     </div>
-
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        <div>
-                                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Kelurahan</label>
-                                            <input id="booth-kelurahan" type="text" class="w-full px-4 py-2.5 rounded-xl border border-neutral-200 bg-slate-50 text-slate-600" readonly>
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Kecamatan</label>
-                                            <input id="booth-kecamatan" type="text" class="w-full px-4 py-2.5 rounded-xl border border-neutral-200 bg-slate-50 text-slate-600" readonly>
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Kota</label>
-                                            <input id="booth-kota" type="text" class="w-full px-4 py-2.5 rounded-xl border border-neutral-200 bg-slate-50 text-slate-600" readonly>
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Provinsi</label>
-                                            <input id="booth-provinsi" type="text" class="w-full px-4 py-2.5 rounded-xl border border-neutral-200 bg-slate-50 text-slate-600" readonly>
-                                        </div>
-                                        <div class="sm:col-span-2">
-                                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Kode Pos</label>
-                                            <input id="booth-kodepos" type="text" class="w-full px-4 py-2.5 rounded-xl border border-neutral-200 bg-slate-50 text-slate-600" readonly>
-                                        </div>
-                                    </div>
-
-                                    <div class="grid grid-cols-2 gap-3">
-                                        <div>
-                                            <div class="flex items-center justify-between mb-1.5">
-                                                <label class="block text-sm font-semibold text-slate-700">Latitude (lat)</label>
-                                                <span id="booth-geocode-loading" class="hidden inline-flex items-center gap-1 text-[11px] font-semibold text-red-600">
-                                                    <span class="inline-block h-2 w-2 rounded-full bg-red-500 animate-pulse"></span>
-                                                    Mencari koordinat...
-                                                </span>
-                                            </div>
-                                            <input id="booth-lat" type="text" class="w-full px-4 py-2.5 rounded-xl border border-neutral-200 bg-slate-50 text-slate-600" placeholder="-6.200000" readonly>
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Longitude (lng)</label>
-                                            <input id="booth-lng" type="text" class="w-full px-4 py-2.5 rounded-xl border border-neutral-200 bg-slate-50 text-slate-600" placeholder="106.816666" readonly>
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Pilih Lokasi Booth di Peta</label>
-                                        <div id="boothMap" class="booth-map border"></div>
-                                        <p class="text-xs text-slate-500 mt-2">Klik peta atau seret penanda untuk memperbarui koordinat.</p>
-                                    </div>
-
-                                    <div class="flex justify-end gap-3 pt-2">
-                                        <button id="btn-reset-booth" type="button" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200">Reset</button>
-                                        <button id="btn-save-booth" type="button" class="px-4 py-2 rounded-xl bg-red-600 text-white hover:bg-red-700">Simpan Titik Outlet</button>
+                                    <div class="sm:col-span-2">
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Kode
+                                            Pos</label>
+                                        <input id="booth-kodepos" type="text"
+                                            class="w-full px-4 py-2.5 rounded-xl border border-neutral-200 bg-slate-50 text-slate-600"
+                                            readonly>
                                     </div>
                                 </div>
 
-                                <div id="tab-list-panel" class="hidden">
-                                    <div class="mb-3 flex items-center justify-between gap-3">
-                                        <input id="booth-list-search" type="search" placeholder="Cari nama booth, kategori, alamat, atau wilayah" class="w-full px-4 py-2 rounded-xl border border-neutral-200">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <div class="flex items-center justify-between mb-1.5">
+                                            <label class="block text-sm font-semibold text-slate-700">Latitude
+                                                (lat)</label>
+                                            <span id="booth-geocode-loading"
+                                                class="hidden inline-flex items-center gap-1 text-[11px] font-semibold text-red-600">
+                                                <span
+                                                    class="inline-block h-2 w-2 rounded-full bg-red-500 animate-pulse"></span>
+                                                Mencari koordinat...
+                                            </span>
+                                        </div>
+                                        <input id="booth-lat" type="text"
+                                            class="w-full px-4 py-2.5 rounded-xl border border-neutral-200 bg-slate-50 text-slate-600"
+                                            placeholder="-6.200000" readonly>
                                     </div>
-                                    <div class="overflow-x-auto">
-                                        <table id="booth-list-table" class="w-full text-sm table-auto">
-                                            <thead>
-                                                <tr class="text-left bg-slate-50">
-                                                    <th class="px-3 py-2">#</th>
-                                                    <th class="px-3 py-2">Booth</th>
-                                                    <th class="px-3 py-2">Kategori</th>
-                                                    <th class="px-3 py-2">Alamat</th>
-                                                    <th class="px-3 py-2">Wilayah</th>
-                                                    <th class="px-3 py-2">Status</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr><td colspan="6" class="text-center py-6 text-slate-400">Memuat data titik outlet...</td></tr>
-                                            </tbody>
-                                        </table>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Longitude
+                                            (lng)</label>
+                                        <input id="booth-lng" type="text"
+                                            class="w-full px-4 py-2.5 rounded-xl border border-neutral-200 bg-slate-50 text-slate-600"
+                                            placeholder="106.816666" readonly>
                                     </div>
-                                    <div id="booth-list-pagination" class="mt-4"></div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Pilih Lokasi Booth
+                                        di Peta</label>
+                                    <div id="boothMap" class="booth-map border"></div>
+                                    <p class="text-xs text-slate-500 mt-2">Klik peta atau seret penanda untuk
+                                        memperbarui koordinat.</p>
+                                </div>
+
+                                <div class="flex justify-end gap-3 pt-2">
+                                    <button id="btn-reset-booth" type="button"
+                                        class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200">Reset</button>
+                                    <button id="btn-save-booth" type="button"
+                                        class="px-4 py-2 rounded-xl bg-red-600 text-white hover:bg-red-700">Simpan Titik
+                                        Outlet</button>
                                 </div>
                             </div>
+
+                            <div id="tab-list-panel" class="hidden">
+                                <div class="mb-3 flex items-center justify-between gap-3">
+                                    <input id="booth-list-search" type="search"
+                                        placeholder="Cari nama booth, kategori, alamat, atau wilayah"
+                                        class="w-full px-4 py-2 rounded-xl border border-neutral-200">
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table id="booth-list-table" class="w-full text-sm table-auto">
+                                        <thead>
+                                            <tr class="text-left bg-slate-50">
+                                                <th class="px-3 py-2">#</th>
+                                                <th class="px-3 py-2">Booth</th>
+                                                <th class="px-3 py-2">Kategori</th>
+                                                <th class="px-3 py-2">Alamat</th>
+                                                <th class="px-3 py-2">Wilayah</th>
+                                                <th class="px-3 py-2">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td colspan="6" class="text-center py-6 text-slate-400">Memuat data
+                                                    titik outlet...</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div id="booth-list-pagination" class="mt-4"></div>
+                            </div>
+                        </div>
 
                     </div>
                 </div>
@@ -378,9 +449,9 @@
     <!-- Edit Profile Modal -->
     <div id="edit-profile-modal"
         class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden opacity-0 transition-opacity duration-300">
-        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
+        <div class="flex items-center justify-center min-h-screen px-8 sm:px-12 pt-4 pb-20 text-center sm:p-0">
             <div
-                class="relative bg-white rounded-3xl overflow-hidden shadow-2xl transform scale-95 transition-all duration-300 w-full max-w-lg text-left flex flex-col max-h-[90vh]">
+                class="relative bg-white rounded-3xl overflow-hidden shadow-2xl transform scale-95 transition-all duration-300 w-full max-w-2xl text-left flex flex-col max-h-[90vh]">
 
                 <div class="px-6 py-5 border-b border-neutral-100 flex justify-between items-center shrink-0">
                     <h2 class="text-xl font-bold text-slate-900 font-poppins">Edit Profil</h2>
@@ -392,6 +463,14 @@
 
                 <div class="p-6 overflow-y-auto flex-1">
                     <form id="edit-profile-form" class="space-y-5">
+                        <!-- Member ID -->
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">ID Member</label>
+                            <input type="text" id="edit-membership" name="no_membership"
+                                class="w-full px-4 py-2.5 rounded-xl border border-neutral-200 bg-slate-50 text-slate-500 cursor-not-allowed outline-none"
+                                readonly>
+                        </div>
+
 
                         <!-- Nama -->
                         <div>
@@ -402,33 +481,45 @@
                         </div>
 
                         <!-- Testimonial Card -->
-                        <div id="panel-testimonial" class="bg-white rounded-3xl p-6 shadow-sm border border-neutral-100 hidden">
-                            <h3 class="text-lg font-bold font-poppins text-slate-900 border-b border-slate-100 pb-4 mb-4 flex items-center">
+                        <div id="panel-testimonial"
+                            class="bg-white rounded-3xl p-6 shadow-sm border border-neutral-100 hidden">
+                            <h3
+                                class="text-lg font-bold font-poppins text-slate-900 border-b border-slate-100 pb-4 mb-4 flex items-center">
                                 <i class="ri-chat-3-line text-red-600 mr-2 text-xl"></i> Pengisian Testimoni
                             </h3>
 
                             <div class="space-y-4">
                                 <div>
-                                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Judul Testimoni</label>
-                                    <input id="testi-title" type="text" class="w-full px-4 py-2.5 rounded-xl border border-neutral-200" placeholder="Judul singkat testimoni">
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Judul
+                                        Testimoni</label>
+                                    <input id="testi-title" type="text"
+                                        class="w-full px-4 py-2.5 rounded-xl border border-neutral-200"
+                                        placeholder="Judul singkat testimoni">
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Isi Testimoni</label>
-                                    <textarea id="testi-body" rows="3" class="w-full px-4 py-2.5 rounded-xl border border-neutral-200 resize-none" placeholder="Tuliskan pengalaman Anda..."></textarea>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Isi
+                                        Testimoni</label>
+                                    <textarea id="testi-body" rows="3"
+                                        class="w-full px-4 py-2.5 rounded-xl border border-neutral-200 resize-none"
+                                        placeholder="Tuliskan pengalaman Anda..."></textarea>
                                 </div>
                                 <div class="grid grid-cols-2 gap-3">
                                     <div>
-                                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Rating (1-5)</label>
-                                        <input id="testi-rating" type="number" min="1" max="5" class="w-full px-4 py-2.5 rounded-xl border border-neutral-200" value="5">
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Rating
+                                            (1-5)</label>
+                                        <input id="testi-rating" type="number" min="1" max="5"
+                                            class="w-full px-4 py-2.5 rounded-xl border border-neutral-200" value="5">
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Upload Foto (opsional)</label>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Upload Foto
+                                            (opsional)</label>
                                         <input id="testi-photo" type="file" accept="image/*" class="w-full">
                                     </div>
                                 </div>
 
                                 <div class="flex justify-end gap-3 pt-2">
-                                    <button id="btn-save-testimonial" class="px-4 py-2 rounded-xl bg-red-600 text-white">Kirim Testimoni</button>
+                                    <button id="btn-save-testimonial"
+                                        class="px-4 py-2 rounded-xl bg-red-600 text-white">Kirim Testimoni</button>
                                 </div>
 
                                 <div class="pt-4">
@@ -445,7 +536,10 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <tr><td colspan="5" class="text-center py-6 text-slate-400">Belum ada testimoni.</td></tr>
+                                                <tr>
+                                                    <td colspan="5" class="text-center py-6 text-slate-400">Belum ada
+                                                        testimoni.</td>
+                                                </tr>
                                             </tbody>
                                         </table>
                                     </div>
@@ -470,12 +564,12 @@
                             </div>
                         </div>
 
-                        <!-- Alamat -->
+                        <!-- Website -->
                         <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Alamat Domisili</label>
-                            <textarea id="edit-alamat" name="alamat" rows="2"
-                                class="w-full px-4 py-2.5 rounded-xl border border-neutral-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none transition-all text-slate-700 resize-none"
-                                placeholder="Masukkan alamat lengkap"></textarea>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Website</label>
+                            <input type="text" id="edit-website" name="website"
+                                class="w-full px-4 py-2.5 rounded-xl border border-neutral-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none transition-all text-slate-700"
+                                placeholder="https://...">
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -487,14 +581,74 @@
                                     class="w-full px-4 py-2.5 rounded-xl border border-neutral-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none transition-all text-slate-700"
                                     placeholder="16 digit NIK">
                             </div>
-                            <!-- Tanggal Lahir -->
+                            <!-- NPWP -->
                             <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5">NPWP</label>
+                                <input type="text" id="edit-npwp" name="no_npwp"
+                                    class="w-full px-4 py-2.5 rounded-xl border border-neutral-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none transition-all text-slate-700"
+                                    placeholder="Nomor NPWP">
+                            </div>
+                            <!-- Tanggal Lahir -->
+                            <div class="sm:col-span-2">
                                 <label class="block text-sm font-semibold text-slate-700 mb-1.5">Tanggal Lahir</label>
                                 <input type="date" id="edit-birth" name="birth"
                                     class="w-full px-4 py-2.5 rounded-xl border border-neutral-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none transition-all text-slate-700">
                             </div>
                         </div>
 
+                        <!-- Alamat -->
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Alamat Domisili</label>
+                            <textarea id="edit-alamat" name="alamat" rows="2"
+                                class="w-full px-4 py-2.5 rounded-xl border border-neutral-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none transition-all text-slate-700 resize-none"
+                                placeholder="Masukkan alamat lengkap"></textarea>
+                        </div>
+
+                        <!-- Wilayah -->
+                        <div class="grid grid-cols-1 gap-5">
+                            <input id="edit-region-id" type="hidden">
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Wilayah</label>
+                                <div class="relative">
+                                    <input type="text" id="edit-region" name="region"
+                                        class="w-full px-4 py-2.5 rounded-xl border border-neutral-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none transition-all text-slate-700"
+                                        placeholder="Provinsi / Kota / Kecamatan">
+                                    <div id="edit-region-results"
+                                        class="hidden absolute z-20 mt-2 w-full overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-xl">
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Kelurahan</label>
+                                <input type="text" id="edit-kelurahan" name="kelurahan"
+                                    class="w-full px-4 py-2.5 rounded-xl border border-neutral-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none transition-all text-slate-700"
+                                    placeholder="Kelurahan">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Kecamatan</label>
+                                <input type="text" id="edit-kecamatan" name="kecamatan"
+                                    class="w-full px-4 py-2.5 rounded-xl border border-neutral-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none transition-all text-slate-700"
+                                    placeholder="Kecamatan">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Kota</label>
+                                <input type="text" id="edit-kota" name="kota"
+                                    class="w-full px-4 py-2.5 rounded-xl border border-neutral-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none transition-all text-slate-700"
+                                    placeholder="Kota">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Provinsi</label>
+                                <input type="text" id="edit-provinsi" name="provinsi"
+                                    class="w-full px-4 py-2.5 rounded-xl border border-neutral-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none transition-all text-slate-700"
+                                    placeholder="Provinsi">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Kode Pos</label>
+                                <input type="text" id="edit-kodepos" name="kode_pos"
+                                    class="w-full px-4 py-2.5 rounded-xl border border-neutral-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none transition-all text-slate-700"
+                                    placeholder="Kode Pos">
+                            </div>
+                        </div>
                     </form>
                 </div>
 
@@ -512,11 +666,12 @@
     </div>
 
     <!-- Logout Modal -->
-    <div id="logout-modal"
-        class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden opacity-0 transition-opacity duration-300">
+    <div id="logoutModal"
+        class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[2000] hidden overflow-y-auto px-4 py-6 sm:px-0">
+        <div onclick="closeLogoutModal()" class="fixed inset-0 bg-transparent"></div>
         <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
-            <div
-                class="relative bg-white rounded-3xl overflow-hidden shadow-2xl transform scale-95 transition-all duration-300 w-full max-w-sm p-6 sm:p-8">
+            <div id="logoutModalCard"
+                class="relative bg-white rounded-3xl overflow-hidden shadow-2xl transform scale-95 opacity-0 transition-all duration-300 w-full max-w-sm p-6 sm:p-8">
                 <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
                     <i class="ri-logout-box-r-line text-3xl text-red-600"></i>
                 </div>
